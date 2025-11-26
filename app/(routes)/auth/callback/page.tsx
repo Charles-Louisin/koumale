@@ -10,45 +10,50 @@ import { Spinner } from "@/app/components/ui/Spinner";
 export default function AuthCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // ⚠️ on garde TA version
   const { toasts, success, error, removeToast } = useToast();
 
   useEffect(() => {
     const token = searchParams.get("token");
 
-    if (token) {
-      // Stocker le token
-      authStorage.setToken(token);
-
-      // Récupérer les informations utilisateur depuis le token
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const user = payload.user;
-
-        success(`Bienvenu(e) ${user.firstName || ''} ${user.lastName || ''}`.trim() || "Connexion réussie !");
-
-        // Rediriger selon le rôle
-        setTimeout(() => {
-          if (user.role === "vendor") {
-            router.push("/dashboard/vendor");
-          } else if (user.role === "superAdmin") {
-            router.push("/dashboard/admin");
-          } else {
-            router.push("/");
-          }
-        }, 500);
-      } catch (err) {
-        error("Erreur lors du traitement du token");
-        router.push("/auth/login");
-      }
-    } else {
+    if (!token) {
       error("Token manquant");
+      router.push("/auth/login");
+      return;
+    }
+
+    authStorage.setToken(token);
+
+    try {
+      const parts = token.split(".");
+      if (parts.length < 2) throw new Error("Invalid token");
+
+      const payload = JSON.parse(atob(parts[1]));
+      const user = payload.user || {};
+
+      success(`Bienvenue ${user.firstName || ""} ${user.lastName || ""}`.trim());
+
+      setTimeout(() => {
+        if (user.role === "vendor") {
+          router.push("/dashboard/vendor");
+        } else if (user.role === "superAdmin") {
+          router.push("/dashboard/admin");
+        } else {
+          router.push("/");
+        }
+      }, 500);
+    } catch {
+      error("Erreur lors du traitement du token");
       router.push("/auth/login");
     }
   }, [searchParams, router, success, error]);
 
   return (
     <>
+      {/* ⚠️ Ton ToastContainer exige ces props */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
+
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Spinner className="w-8 h-8 mx-auto mb-4" />
