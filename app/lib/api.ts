@@ -138,6 +138,14 @@ export const authApi = {
     });
   },
 
+  // Vérifier la disponibilité du nom d'entreprise
+  async checkBusinessName(businessName: string) {
+    return apiRequest<{ available: boolean }>('/api/auth/check-business-name', {
+      method: 'POST',
+      body: JSON.stringify({ businessName }),
+    });
+  },
+
   // Récupérer l'utilisateur courant
   async getMe() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;

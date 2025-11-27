@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/Tabs";
 import { UploadFile } from "@/app/components/ui/upload-file";
 import { Modal } from "@/app/components/ui/modal";
-import { Store, Mail, Lock, Building2, FileText, ArrowRight, Upload, CheckCircle2, ArrowLeft, Eye, EyeOff, MessageCircle, AlertTriangle, AlertCircleIcon } from "lucide-react";
+import { Store, Mail, Lock, Building2, FileText, ArrowRight, Upload, CheckCircle2, ArrowLeft, Eye, EyeOff, MessageCircle, AlertTriangle, AlertCircleIcon, Check, X, Loader2 } from "lucide-react";
 import { authApi, authStorage } from "@/app/lib/api";
 import { useToast } from "@/app/hooks/use-toast";
 import { ToastContainer } from "@/app/components/ui/toast";
@@ -45,6 +45,31 @@ export default function RegisterVendorPage() {
     whatsappLink: "+237 ",
     telegramLink: "@",
   });
+
+  const [businessNameChecking, setBusinessNameChecking] = useState(false);
+  const [businessNameAvailable, setBusinessNameAvailable] = useState<boolean | null>(null);
+
+  // Vérification en temps réel de la disponibilité du nom d'entreprise
+  React.useEffect(() => {
+    if (!businessData.businessName.trim() || businessData.businessName.trim().length < 2) {
+      setBusinessNameAvailable(null);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setBusinessNameChecking(true);
+      try {
+        const response = await authApi.checkBusinessName(businessData.businessName.trim());
+        setBusinessNameAvailable(response.success && response.data ? response.data.available : null);
+      } catch (error) {
+        setBusinessNameAvailable(null);
+      } finally {
+        setBusinessNameChecking(false);
+      }
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timeoutId);
+  }, [businessData.businessName]);
 
   const [documentData, setDocumentData] = useState({
     logo: "",
@@ -213,6 +238,15 @@ export default function RegisterVendorPage() {
       // Validation de l'onglet entreprise
       if (!businessData.businessName || !businessData.description || !businessData.contactPhone) {
         error("Veuillez remplir tous les champs obligatoires");
+        return;
+      }
+      // Vérifier la disponibilité du nom d'entreprise
+      if (businessNameAvailable === false) {
+        error("Le nom d'entreprise est déjà utilisé. Veuillez en choisir un autre.");
+        return;
+      }
+      if (businessNameAvailable === null && businessData.businessName.trim().length >= 2) {
+        error("Vérification du nom d'entreprise en cours. Veuillez patienter.");
         return;
       }
       setActiveTab("documents");
@@ -490,6 +524,27 @@ export default function RegisterVendorPage() {
                         className={`transition-all focus:ring-2 ${businessNameError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-primary'}`}
                       />
                       {businessNameError && <p className="text-xs text-red-600 mt-1">{businessNameError}</p>}
+                      {/* Indicateur de disponibilité du nom d'entreprise */}
+                      {businessData.businessName.trim().length >= 2 && (
+                        <div className="flex items-center gap-2 mt-2">
+                          {businessNameChecking ? (
+                            <>
+                              <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                              <span className="text-sm text-blue-600">Vérification en cours...</span>
+                            </>
+                          ) : businessNameAvailable === true ? (
+                            <>
+                              <Check className="w-4 h-4 text-green-500" />
+                              <span className="text-sm text-green-600">Nom disponible</span>
+                            </>
+                          ) : businessNameAvailable === false ? (
+                            <>
+                              <X className="w-4 h-4 text-red-500" />
+                              <span className="text-sm text-red-600">Nom déjà utilisé</span>
+                            </>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
