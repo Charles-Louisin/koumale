@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/app/components/ui/button";
@@ -53,17 +53,29 @@ export default function RegisterVendorPage() {
   React.useEffect(() => {
     if (!businessData.businessName.trim() || businessData.businessName.trim().length < 2) {
       setBusinessNameAvailable(null);
+      setBusinessNameChecking(false);
       return;
     }
 
     const timeoutId = setTimeout(async () => {
+      console.log('Setting businessNameChecking to true');
       setBusinessNameChecking(true);
       try {
+        console.log('Checking business name:', businessData.businessName.trim());
         const response = await authApi.checkBusinessName(businessData.businessName.trim());
-        setBusinessNameAvailable(response.success && response.data ? response.data.available : null);
+        console.log('Business name check response:', response);
+        const available = response.success;
+        console.log('Setting businessNameAvailable to:', available);
+        setBusinessNameAvailable(available);
       } catch (error) {
-        setBusinessNameAvailable(null);
+        // If the error is due to business name being taken, set available to false
+        if (error instanceof Error && error.message === 'Nom d\'entreprise déjà utilisé') {
+          setBusinessNameAvailable(false);
+        } else {
+          setBusinessNameAvailable(null);
+        }
       } finally {
+        console.log('Setting businessNameChecking to false');
         setBusinessNameChecking(false);
       }
     }, 500); // Debounce de 500ms
@@ -200,7 +212,7 @@ export default function RegisterVendorPage() {
     return valid ? "" : "Le numéro doit commencer par 6 et contenir 9 chiffres";
   }, [businessData.whatsappLink, touched.whatsappLink]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (activeTab === "account") {
       // Validation de l'onglet compte
       if (!accountData.email) {
@@ -251,7 +263,7 @@ export default function RegisterVendorPage() {
       }
       setActiveTab("documents");
     }
-  };
+  }, [activeTab, accountData.email, accountData.password, accountData.confirmPassword, isLoggedIn, businessData.businessName, businessData.description, businessData.contactPhone, businessNameAvailable, error]);
 
   const handleBack = () => {
     if (activeTab === "business") {
@@ -535,12 +547,12 @@ export default function RegisterVendorPage() {
                           ) : businessNameAvailable === true ? (
                             <>
                               <Check className="w-4 h-4 text-green-500" />
-                              <span className="text-sm text-green-600">Nom disponible</span>
+                              <span className="text-sm text-green-600">Nom d&apos;entreprise disponible</span>
                             </>
                           ) : businessNameAvailable === false ? (
                             <>
                               <X className="w-4 h-4 text-red-500" />
-                              <span className="text-sm text-red-600">Nom déjà utilisé</span>
+                              <span className="text-sm text-red-600">Ce nom d&apos;entreprise existe déjà</span>
                             </>
                           ) : null}
                         </div>

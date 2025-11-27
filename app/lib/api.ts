@@ -140,10 +140,25 @@ export const authApi = {
 
   // Vérifier la disponibilité du nom d'entreprise
   async checkBusinessName(businessName: string) {
-    return apiRequest<{ available: boolean }>('/api/auth/check-business-name', {
-      method: 'POST',
-      body: JSON.stringify({ businessName }),
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/check-business-name`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ businessName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Une erreur est survenue');
+      }
+
+      return data; // { success: boolean, available: boolean }
+    } catch (error) {
+      throw error;
+    }
   },
 
   // Récupérer l'utilisateur courant

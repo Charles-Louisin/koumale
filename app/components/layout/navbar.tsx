@@ -5,7 +5,7 @@ import { authApi, authStorage, productsApi, vendorsApi, ProductItem, Vendor, API
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon } from "lucide-react";
+import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon, Baby, Car, Camera, Coffee, Dumbbell, Flower, Gift, Glasses, Hammer, Headphones, Laptop, Monitor, Music, Palette, Pill, Scissors, ShoppingBag, Sofa, Wrench, Truck, Watch, Wine, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function Navbar() {
@@ -217,15 +217,19 @@ export function Navbar() {
 
   const [categories, setCategories] = React.useState<Array<{ name: string; slug: string; Icon: LucideIcon }>>([]);
 
-  // Fetch categories from backend only
+  // Fetch categories that have products from backend
   React.useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/categories`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && Array.isArray(data.data)) {
-            const backendCategories = data.data.map((cat: string) => ({
+        // First fetch products to get categories that have products
+        const productsResponse = await fetch(`${API_BASE_URL}/api/products?limit=1000`);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          if (productsData.success && Array.isArray(productsData.data)) {
+            // Extract unique categories from products
+            const uniqueCategories = [...new Set(productsData.data.map((product: any) => product.category).filter(Boolean))] as string[];
+            const sortedCategories = uniqueCategories.sort((a: string, b: string) => a.localeCompare(b));
+            const backendCategories = sortedCategories.map((cat: string) => ({
               name: cat,
               slug: cat.toLowerCase().replace(/\s+/g, '-'),
               Icon: getIconForCategory(cat)
@@ -247,15 +251,54 @@ export function Navbar() {
   const getIconForCategory = (categoryName: string): LucideIcon => {
     const iconMap: Record<string, LucideIcon> = {
       "Électronique": Smartphone,
+      "Téléphones & Tablettes": Smartphone,
+      "Ordinateurs & Accessoires": Laptop,
+      "TV & Audio": Monitor,
+      "Appareils Photo & Caméras": Camera,
+      "Gaming & Consoles": Gamepad2,
       "Vêtements": Shirt,
-      "Cuisine": ChefHat,
+      "Mode Femme": Shirt,
+      "Mode Homme": Shirt,
+      "Chaussures": ShoppingBag,
+      "Accessoires Mode": Briefcase,
+      "Maison & Jardin": HomeIcon,
+      "Meubles": Sofa,
+      "Décoration": Sofa,
+      "Électroménager": Zap,
+      "Bricolage": Hammer,
+      "Beauté & Santé": Sparkles,
+      "Parfums & Cosmétiques": Sparkles,
+      "Soins du Corps": Heart,
+      "Cheveux & Ongles": Scissors,
+      "Santé & Bien-être": Pill,
+      "Alimentation": Coffee,
+      "Épicerie": Coffee,
+      "Boissons": Wine,
+      "Produits Bio": Flower,
+      "Sports & Loisirs": Activity,
+      "Équipement Sportif": Dumbbell,
+      "Vélo & Moto": Car,
+      "Camping & Randonnée": Flower,
+      "Jouets & Jeux": Gamepad2,
+      "Livres & Médias": Book,
       "Livres": Book,
-      "Accessoires": Briefcase,
-      "Maison": HomeIcon,
-      "Beauté": Sparkles,
-      "Sport": Activity,
-      "Jouets": Gamepad2,
-      "Santé": Heart,
+      "Musique & Films": Music,
+      "Jeux Vidéo": Gamepad2,
+      "Auto & Moto": Car,
+      "Pièces Auto": Wrench,
+      "Accessoires Auto": Car,
+      "Équipement Moto": Car,
+      "Bébé & Enfant": Baby,
+      "Vêtements Bébé": Baby,
+      "Puériculture": Baby,
+      "Jouets Enfant": Gamepad2,
+      "Animaux": Heart,
+      "Alimentation Animaux": Heart,
+      "Accessoires Animaux": Heart,
+      "Jardinage": Flower,
+      "Outils & Matériel": Wrench,
+      "Semences & Plantes": Flower,
+      "Autres": Package,
     };
     return iconMap[categoryName] || Package;
   };
@@ -680,7 +723,7 @@ export function Navbar() {
                         <Link
                           key={category.slug}
                           href={`/products?category=${category.slug}`}
-                          className="group bg-white p-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 flex flex-col items-center text-center flex-shrink-0 w-[120px]"
+                          className="group bg-white p-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 flex flex-col items-center text-center shrink-0 h-fit  min-w-[120px]"
                         >
                           <div className="mb-2 group-hover:scale-105 transition-transform">
                             <category.Icon className="w-8 h-8 text-primary" />

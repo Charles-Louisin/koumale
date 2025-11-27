@@ -228,7 +228,7 @@ export default function VendorProfilePage() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Images */}
-        <Card>
+        <Card className="border-0 p-0 shadow-2xl">
           <CardHeader>
             <CardTitle>Images du profil</CardTitle>
           </CardHeader>
@@ -273,7 +273,7 @@ export default function VendorProfilePage() {
         </Card>
 
         {/* Informations de base */}
-        <Card>
+        <Card className="border-0 p-0 shadow-2xl">
           <CardHeader>
             <CardTitle>Informations de base</CardTitle>
           </CardHeader>
@@ -302,7 +302,7 @@ export default function VendorProfilePage() {
         </Card>
 
         {/* Contact */}
-        <Card>
+        <Card className="border-0 p-0 shadow-2xl">
           <CardHeader>
             <CardTitle>Informations de contact</CardTitle>
           </CardHeader>
@@ -372,7 +372,7 @@ export default function VendorProfilePage() {
         </Card>
 
         {/* Localisation */}
-        <Card>
+        <Card className="border-0 p-0 shadow-2xl">
           <CardHeader>
             <CardTitle>Localisation</CardTitle>
           </CardHeader>

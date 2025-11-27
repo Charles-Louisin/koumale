@@ -29,15 +29,19 @@ export default function ProductsPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [categories, setCategories] = useState<string[]>([]);
 
-  // Fetch categories from backend only
+  // Fetch categories that have products from backend
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/categories`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && Array.isArray(data.data)) {
-            setCategories(["Toutes", ...data.data]);
+        // First fetch products to get categories that have products
+        const productsResponse = await fetch(`${API_BASE_URL}/api/products?limit=1000`);
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          if (productsData.success && Array.isArray(productsData.data)) {
+            // Extract unique categories from products
+            const uniqueCategories = [...new Set(productsData.data.map((product: any) => product.category).filter(Boolean))] as string[];
+            const sortedCategories = uniqueCategories.sort((a: string, b: string) => a.localeCompare(b));
+            setCategories(["Toutes", ...sortedCategories]);
           }
         }
       } catch (error) {

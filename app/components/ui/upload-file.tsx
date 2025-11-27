@@ -306,7 +306,8 @@ const startUpload = async (inputFiles: File[]) => {
       {error && (
         <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 p-2 rounded">
           <AlertCircle className="w-4 h-4" />
-          <p>{error}</p>
+          <p>Erreur réseau. Veuillez réessayer plutard</p>
+          {/* <p>{error}</p> */}
         </div>
       )}
 

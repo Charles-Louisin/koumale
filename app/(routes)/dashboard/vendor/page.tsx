@@ -88,19 +88,11 @@ export default function VendorDashboardPage() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-              <Link href="/dashboard/vendor/products/new" className="w-full sm:w-auto">
-                <Button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0">
-                  <Plus className="mr-2 h-4 w-4" />
-                  <span className="hidden sm:inline">Ajouter un produit</span>
-                  <span className="sm:hidden">Ajouter</span>
-                </Button>
-              </Link>
               {vendorSlug ? (
                 <Link href={shopRelativeUrl} target="_blank" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full border-2 hover:bg-orange-50">
                     <Eye className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline">Voir ma boutique</span>
-                    <span className="sm:hidden">Voir</span>
+                    <span className="inline">Voir ma boutique</span>
                   </Button>
                 </Link>
               ) : null}
@@ -179,38 +171,7 @@ export default function VendorDashboardPage() {
 
         {/* Quick Actions & Recent Activity */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-8 mb-12">
-          {/* Quick Actions */}
-          <Card className="xl:col-span-1 border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-900">Actions rapides</CardTitle>
-              <CardDescription>Accès rapide aux tâches importantes</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-2">
-              <Link href="/dashboard/vendor/products/new">
-                <Button className="w-full justify-start h-12 cursor-pointer hover:bg-orange-500 text-white border-0">
-                  <Plus className="w-5 h-5 mr-3" />
-                  <span className="hidden sm:inline">Ajouter un produit</span>
-                  <span className="sm:hidden">Ajouter</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/vendor/products">
-                <Button variant="outline" className="w-full cursor-pointer justify-start h-12 border-2 hover:bg-orange-50">
-                  <Package className="w-5 h-5 mr-3" />
-                  <span className="hidden sm:inline">Gérer les produits</span>
-                  <span className="sm:hidden">Gérer</span>
-                </Button>
-              </Link>
-              {vendorSlug ? (
-                <Link href={shopRelativeUrl} target="_blank">
-                  <Button variant="outline" className="w-full cursor-pointer justify-start h-12 border-2 hover:bg-orange-50">
-                    <Eye className="w-5 h-5 mr-3" />
-                    <span className="hidden sm:inline">Voir ma boutique</span>
-                    <span className="sm:hidden">Voir</span>
-                  </Button>
-                </Link>
-              ) : null}
-            </CardContent>
-          </Card>
+          
 
           {/* Recent Products */}
           <Card className="xl:col-span-2 border-0 shadow-lg">
@@ -226,8 +187,7 @@ export default function VendorDashboardPage() {
               </div>
               <Link href="/dashboard/vendor/products">
                 <Button variant="outline" size="sm" className="border-2 w-full sm:w-auto">
-                  <span className="hidden sm:inline">Voir tout</span>
-                  <span className="sm:hidden">Voir</span>
+                  <span className="sm:inline">Voir tous mes produits</span>
                 </Button>
               </Link>
             </CardHeader>
@@ -237,7 +197,7 @@ export default function VendorDashboardPage() {
                   {recentProducts.slice(0, 3).map((product) => (
                     <div key={product._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors gap-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
                           <span className="text-white font-bold text-lg">
                             {product.name.charAt(0).toUpperCase()}
                           </span>
@@ -257,15 +217,13 @@ export default function VendorDashboardPage() {
                             size="sm"
                             className="border-2 hover:bg-white w-full"
                           >
-                            <span className="hidden sm:inline">Modifier</span>
-                            <span className="sm:hidden">Modif</span>
+                            <span className="sm:inline">Modifier</span>
                           </Button>
                         </Link>
                         {vendorSlug ? (
                           <Link href={`/vendor/${vendorSlug}/product/${product._id}`} target="_blank" className="w-full sm:w-auto">
                             <Button variant="outline" size="sm" className="border-2 hover:bg-white w-full">
-                              <span className="hidden sm:inline">Voir</span>
-                              <span className="sm:hidden">Voir</span>
+                              <span className="sm:inline">Voir le produit</span>
                             </Button>
                           </Link>
                         ) : null}
