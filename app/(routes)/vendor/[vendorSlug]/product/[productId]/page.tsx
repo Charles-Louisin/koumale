@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Heart, Share2, Star, Package, Truck, Shield, Award, MessageCircle, Phone, MapPin, ArrowRight, ShoppingBag, Send, Mail } from "lucide-react";
 import { ReviewListCarousel } from "@/app/components/reviews/ReviewListCarousel";
 import { ReviewForm } from "@/app/components/reviews/ReviewForm";
+import { ImageModal } from "@/app/components/ui/image-modal";
 import { API_BASE_URL } from "@/app/lib/api";
 import { authApi } from "@/app/lib/api";
 
@@ -46,6 +47,10 @@ export default function ProductPage({
   const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string } | null>(null);
 
   const [reviews, setReviews] = useState<ReviewType[]>([]);
+
+  // Image modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalCurrentIndex, setModalCurrentIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +188,28 @@ export default function ProductPage({
 
   const mainImage = activeImage ?? product?.images?.[0] ?? FALLBACK_IMAGE;
 
+  // Modal handlers
+  const openModal = (imageIndex: number = 0) => {
+    setModalCurrentIndex(imageIndex);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const goToNextImage = () => {
+    if (product?.images) {
+      setModalCurrentIndex((prev) => (prev + 1) % product.images.length);
+    }
+  };
+
+  const goToPreviousImage = () => {
+    if (product?.images) {
+      setModalCurrentIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    }
+  };
+
   // Generate message for contact
   const generateMessage = React.useMemo(() => {
     if (!product) return "Bonjour, je suis intéressé par vos produits.";
@@ -306,7 +333,7 @@ export default function ProductPage({
             className="space-y-4"
           >
             {/* Main Image */}
-            <div className="aspect-4/3 bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+            <div className="aspect-4/3 bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden cursor-pointer" onClick={() => openModal(product?.images?.indexOf(activeImage || product?.images?.[0] || '') || 0)}>
               <div
                 className="h-full w-full bg-cover bg-center transition-all duration-500 hover:scale-105 brightness-110"
                 style={{ backgroundImage: `url(${mainImage})` }}
@@ -325,7 +352,9 @@ export default function ProductPage({
                     className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${
                       activeImage === image ? "border-primary shadow-lg" : "border-gray-200 hover:border-gray-300"
                     }`}
-                    onClick={() => setActiveImage(image)}
+                    onClick={() => {
+                      setActiveImage(image);
+                    }}
                   >
                     <div
                       className="h-full w-full bg-cover bg-center"
@@ -627,6 +656,16 @@ export default function ProductPage({
           </motion.section>
         )}
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        images={product?.images || []}
+        currentIndex={modalCurrentIndex}
+        onNext={goToNextImage}
+        onPrevious={goToPreviousImage}
+      />
     </main>
   );
 }
