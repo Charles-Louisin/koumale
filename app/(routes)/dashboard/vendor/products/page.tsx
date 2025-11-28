@@ -9,7 +9,7 @@ import { useToast } from "@/app/hooks/use-toast";
 import { ToastContainer } from "@/app/components/ui/toast";
 import { Modal } from "@/app/components/ui/modal";
 import { calculateDiscountPercentage } from "@/app/lib/utils";
-import { Edit, Trash2, Plus, Eye, TrendingUp, Package, DollarSign } from "lucide-react";
+import { Edit, Trash2, Plus, Eye, TrendingUp, Package, DollarSign, Filter, SortAsc, SortDesc, Search, X } from "lucide-react";
 
 const getProductImage = (images?: string[]): string => images?.[0] || "https://placehold.co/300x200/000000/FFFFFF/png?text=Produit";
 
@@ -19,6 +19,84 @@ export default function VendorProductsPage() {
   const [error, setError] = React.useState<string | null>(null);
   const { toasts, success, error: toastError, removeToast } = useToast();
   const [deleteId, setDeleteId] = React.useState<string | null>(null);
+
+  // Filter states
+  const [sortBy, setSortBy] = React.useState<'name' | 'views' | 'date'>('date');
+  const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc');
+  const [showPromotionalOnly, setShowPromotionalOnly] = React.useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [selectedCategory, setSelectedCategory] = React.useState<string>('');
+  const [priceRange, setPriceRange] = React.useState<{ min: string; max: string }>({ min: '', max: '' });
+
+  // Get unique categories for filter dropdown
+  const categories = React.useMemo(() => {
+    const uniqueCategories = [...new Set(products.map(p => p.category))];
+    return uniqueCategories.filter(Boolean).sort();
+  }, [products]);
+
+  // Filtered and sorted products
+  const filteredProducts = React.useMemo(() => {
+    let filtered = products;
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory) {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    // Filter by price range
+    if (priceRange.min || priceRange.max) {
+      filtered = filtered.filter(product => {
+        const price = product.promotionalPrice || product.price;
+        const minPrice = priceRange.min ? parseFloat(priceRange.min) : 0;
+        const maxPrice = priceRange.max ? parseFloat(priceRange.max) : Infinity;
+        return price >= minPrice && price <= maxPrice;
+      });
+    }
+
+    // Filter by promotional products if enabled
+    if (showPromotionalOnly) {
+      filtered = filtered.filter(product => product.promotionalPrice);
+    }
+
+    // Sort products
+    filtered.sort((a, b) => {
+      let aValue: string | number, bValue: string | number;
+
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'views':
+          aValue = a.views || 0;
+          bValue = b.views || 0;
+          break;
+        case 'date':
+          aValue = new Date(a.createdAt || 0).getTime();
+          bValue = new Date(b.createdAt || 0).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
+      } else {
+        return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
+      }
+    });
+
+    return filtered;
+  }, [products, sortBy, sortOrder, showPromotionalOnly, searchQuery, selectedCategory, priceRange]);
 
   React.useEffect(() => {
     const run = async () => {
@@ -73,7 +151,7 @@ export default function VendorProductsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Mes produits</h1>
           <p className="text-gray-600 mt-1">
-            Gérez votre catalogue de produits ({products.length} produit{products.length !== 1 ? 's' : ''})
+            Gérez votre catalogue de produits ({filteredProducts.length} produit{filteredProducts.length !== 1 ? 's' : ''})
           </p>
         </div>
         <Link href="/dashboard/vendor/products/new">
@@ -133,6 +211,133 @@ export default function VendorProductsPage() {
         </Card>
       </div>
 
+      {/* Filters */}
+      <Card className="p-6 mb-6">
+        <div className="space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom ou catégorie..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Category Filter */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Catégorie</label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                <option value="">Toutes les catégories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Price Range */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Prix (FCFA)</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  placeholder="Min"
+                  value={priceRange.min}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                />
+                <input
+                  type="number"
+                  placeholder="Max"
+                  value={priceRange.max}
+                  onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                />
+              </div>
+            </div>
+
+            {/* Sort By */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Trier par</label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'name' | 'views' | 'date')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                <option value="date">Date</option>
+                <option value="name">Nom</option>
+                <option value="views">Vues</option>
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Ordre</label>
+              <Button
+                variant="outline"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                className="w-full flex items-center justify-center gap-2 h-10"
+              >
+                {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+                {sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Additional Filters */}
+          <div className="flex flex-wrap items-center gap-4 pt-2 border-t border-gray-200">
+            {/* Promotional Filter */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="promotional"
+                checked={showPromotionalOnly}
+                onChange={(e) => setShowPromotionalOnly(e.target.checked)}
+                className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+              />
+              <label htmlFor="promotional" className="text-sm font-medium text-gray-700">
+                Produits en promotion uniquement
+              </label>
+            </div>
+
+            {/* Reset Filters */}
+            <Button
+              size="sm"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('');
+                setPriceRange({ min: '', max: '' });
+                setSortBy('date');
+                setSortOrder('desc');
+                setShowPromotionalOnly(false);
+              }}
+              className="flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Réinitialiser les filtres
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       {products.length === 0 ? (
         <Card className="p-12 text-center border-dashed border-2 border-gray-300">
           <div className="max-w-md mx-auto">
@@ -151,17 +356,42 @@ export default function VendorProductsPage() {
             </Link>
           </div>
         </Card>
+      ) : filteredProducts.length === 0 ? (
+        <Card className="p-12 text-center border-dashed border-2 border-gray-300">
+          <div className="max-w-md mx-auto">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Filter className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucun produit trouvé</h3>
+            <p className="text-gray-600 mb-6">
+              Aucun produit ne correspond à vos critères de filtrage. Essayez de modifier vos filtres.
+            </p>
+            <Button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('');
+                setPriceRange({ min: '', max: '' });
+                setSortBy('date');
+                setSortOrder('desc');
+                setShowPromotionalOnly(false);
+              }}
+            >
+              Réinitialiser les filtres
+            </Button>
+          </div>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {products.map((product, index) => {
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          {filteredProducts.map((product, index) => {
             const discountPercentage = product.promotionalPrice
               ? calculateDiscountPercentage(product.price, product.promotionalPrice)
               : 0;
 
+              
             return (
               <Card
                 key={product._id}
-                className="group overflow-hidden border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white"
+                className="group h-fit overflow-hidden border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 bg-white"
               >
                 {/* Product Image */}
                 <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden">
@@ -206,9 +436,7 @@ export default function VendorProductsPage() {
                               <span className="text-lg font-bold text-red-600">
                                 {product.promotionalPrice.toFixed(0)} FCFA
                               </span>
-                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
-                                Promo
-                              </span>
+                              
                             </div>
                             <span className="text-sm text-gray-500 line-through">
                               {product.price.toFixed(0)} FCFA
@@ -221,18 +449,15 @@ export default function VendorProductsPage() {
                         )}
                       </div>
 
-                      {/* Views */}
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Eye className="w-4 h-4" />
-                        <span>{product.views || 0}</span>
-                      </div>
+                      
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <DollarSign className="w-4 h-4" />
-                        <span>{product.clicks || 0} clics</span>
+                      {/* Views */}
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <Eye className="w-4 h-4" />
+                        <span>{product.views || 0}</span>
                       </div>
 
                       <div className="flex gap-2">

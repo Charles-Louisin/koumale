@@ -321,6 +321,27 @@ const startUpload = async (inputFiles: File[]) => {
               key={key}
               file={file}
               onRemove={() => removeFile(index)}
+              onCancel={() => {
+                // Annuler l'upload pour ce fichier spécifique
+                if (file instanceof File && uploadingMap[file.name]) {
+                  // Supprimer le fichier de la liste
+                  removeFile(index);
+
+                  // Retirer le flag d'upload pour ce fichier
+                  setUploadingMap((prev) => {
+                    const next = { ...prev };
+                    delete next[file.name];
+                    return next;
+                  });
+
+                  // Vérifier si c'était le dernier fichier en cours d'upload
+                  const remainingUploads = Object.keys(uploadingMap).filter(name => name !== file.name);
+                  if (remainingUploads.length === 0) {
+                    setUploading(false);
+                    uploadPromiseRef.current = {};
+                  }
+                }
+              }}
               isUploading={perFileUploading}
             />
           );

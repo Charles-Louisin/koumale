@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
-import { Package, Eye, MousePointer, Share2, Plus, TrendingUp, Activity, BarChart3 } from "lucide-react";
+import { Package, Eye, MousePointer, Share2, Plus, TrendingUp, Activity, BarChart3, PlusIcon } from "lucide-react";
 import { vendorApi, authApi, vendorsApi, ProductItem } from "@/app/lib/api";
 
 type TopProduct = { name: string; views: number; clicks: number };
@@ -88,6 +88,12 @@ export default function VendorDashboardPage() {
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <Link href="/dashboard/vendor/products/new" className="w-full sm:w-auto">
+                  <Button  className="w-full border-2 bg-orange-400! hover:bg-orange-50">
+                    <Plus className="mr-1 h-4 w-4" />
+                    <span className="inline">Ajouter un produit</span>
+                  </Button>
+                </Link>
               {vendorSlug ? (
                 <Link href={shopRelativeUrl} target="_blank" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full border-2 hover:bg-orange-50">
@@ -210,7 +216,7 @@ export default function VendorDashboardPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                      <div className="flex sm:flex-row gap-2 w-full sm:w-auto">
                         <Link href={`/dashboard/vendor/products/${product._id}`} className="w-full sm:w-auto">
                           <Button
                             variant="outline"

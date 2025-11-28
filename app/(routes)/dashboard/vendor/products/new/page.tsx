@@ -304,7 +304,7 @@ export default function NewProductPage() {
                 <div>
                   <Label htmlFor="brand">Marque</Label>
                   <Input
-                    id="brand"
+                    id="Marque"
                     placeholder="Marque du produit"
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
@@ -314,7 +314,7 @@ export default function NewProductPage() {
                 <div>
                   <Label htmlFor="model">Modèle</Label>
                   <Input
-                    id="model"
+                    id="Model"
                     placeholder="Modèle du produit"
                     value={model}
                     onChange={(e) => setModel(e.target.value)}

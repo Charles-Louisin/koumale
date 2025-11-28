@@ -163,12 +163,22 @@ export default function ProductPage({
       return [];
     }
 
-    return Object.entries(product.attributes).filter(
-      ([, value]) =>
+    // Function to translate attribute keys to French
+    const translateKey = (key: string): string => {
+      const translations: Record<string, string> = {
+        'brand': 'Marque :',
+        'model': 'Modèle :'
+      };
+      return translations[key.toLowerCase()] || key;
+    };
+
+    return Object.entries(product.attributes)
+      .filter(([, value]) =>
         value !== null &&
         value !== undefined &&
         String(value).trim().length > 0
-    );
+      )
+      .map(([key, value]) => [translateKey(key), value] as [string, unknown]);
   }, [product]);
 
   const formattedPrice = useMemo(() => {

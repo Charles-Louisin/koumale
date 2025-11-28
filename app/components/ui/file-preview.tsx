@@ -13,11 +13,13 @@ interface FilePreviewProps {
     type?: string;
   };
   onRemove?: () => void;
+  onCancel?: () => void;
   isUploading?: boolean;
+  isPreparing?: boolean;
   className?: string;
 }
 
-export function FilePreview({ file, onRemove, isUploading, className = "" }: FilePreviewProps) {
+export function FilePreview({ file, onRemove, onCancel, isUploading, isPreparing, className = "" }: FilePreviewProps) {
   // Fonction pour formater la taille du fichier
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return "";
@@ -96,7 +98,20 @@ export function FilePreview({ file, onRemove, isUploading, className = "" }: Fil
           )}
         </div>
 
-        {onRemove && !isUploading && (
+        {onCancel && (isUploading || isPreparing) && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
+            className="p-1 rounded-full hover:bg-red-50 transition-colors"
+            title={isPreparing ? "Annuler la préparation" : "Annuler l'upload"}
+          >
+            <X className="w-4 h-4 text-red-500" />
+          </button>
+        )}
+
+        {onRemove && !isUploading && !isPreparing && (
           <button
             onClick={(e) => {
               e.stopPropagation();
