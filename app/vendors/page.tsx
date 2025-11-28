@@ -8,6 +8,7 @@ import { LazyImage } from "@/app/components/ui/lazy-image";
 import { vendorsApi, Vendor } from "@/app/lib/api";
 import { motion } from "framer-motion";
 import { Store, ArrowRight, Sparkles, Star, Users, MapPin, Award } from "lucide-react";
+import VendorFilters from "@/app/components/VendorFilters";
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -15,6 +16,12 @@ export default function VendorsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<{ page: number; limit: number; totalPages: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<{
+    q?: string;
+    address?: string;
+    minRating?: number;
+    sortBy?: 'popular' | 'newest';
+  }>({});
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -25,6 +32,7 @@ export default function VendorsPage() {
         const response = await vendorsApi.list({
           page: currentPage,
           limit: 12,
+          ...filters,
         });
 
         if (response.success && response.data) {
@@ -44,45 +52,25 @@ export default function VendorsPage() {
     };
 
     fetchVendors();
-  }, [currentPage]);
+  }, [currentPage, filters]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Modern Header */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative py-16 md:py-24 px-4 md:px-6 overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-white"></div>
-
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center space-y-6">
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-4xl md:text-6xl font-display font-bold text-gray-800 leading-tight"
-            >
-              Toutes les <span className="gradient-text">boutiques</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto"
-            >
-              Découvrez nos partenaires vendeurs et leurs produits de qualité dans toute l&apos;Afrique
-            </motion.p>
-          </div>
-        </div>
-      </motion.section>
+    <main className="min-h-screen bg-white pt-10">
+      
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-16">
-        
+        {/* Vendor Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="mb-8"
+        >
+          <VendorFilters
+            onFiltersChange={setFilters}
+            initialFilters={filters}
+          />
+        </motion.div>
 
         {/* Loading State */}
         {loading && (
@@ -117,7 +105,7 @@ export default function VendorsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
               >
                 {vendors.map((vendor, index) => {
                   const cardVariants = [
@@ -128,7 +116,7 @@ export default function VendorsPage() {
                   ];
                   const variantIndex = index % cardVariants.length;
                   const logoPosition = index % 3;
-                  const hasBadge = index % 4 === 0; // Less frequent badges
+                  const hasBadge = vendor.createdAt && (new Date().getTime() - new Date(vendor.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000; // New badge for shops created within the last week
 
                   return (
                     <motion.article
@@ -172,10 +160,14 @@ export default function VendorsPage() {
                               <h3 className={`font-semibold text-sm group-hover:text-green-700 transition-colors leading-tight truncate ${variantIndex === 3 ? 'text-sm' : 'text-sm'}`}>
                                 {vendor.businessName}
                               </h3>
-                              <div className="flex items-center gap-1 text-yellow-400 ml-1">
-                                <Star className="w-3 h-3 fill-current" />
-                                <span className="text-xs font-medium text-gray-700">4.5</span>
-                              </div>
+                              {vendor.averageRating && vendor.averageRating > 0 && (
+                                <div className="flex items-center gap-1 text-yellow-400 ml-1">
+                                  <Star className="w-3 h-3 fill-current" />
+                                  <span className="text-xs font-medium text-gray-700">
+                                    {vendor.averageRating.toFixed(1)}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                             <p className={`text-gray-600 line-clamp-1 mb-2 leading-tight text-xs ${variantIndex === 3 ? 'text-xs' : 'text-xs'}`}>
                               {vendor.description}

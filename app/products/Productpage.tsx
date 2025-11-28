@@ -9,6 +9,7 @@ import { productsApi, ProductItem, API_BASE_URL } from "@/app/lib/api";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Package, ArrowRight, Filter, Grid, List, Search, Tag, TrendingUp, Star } from "lucide-react";
+import ProductFilters from "@/app/components/ProductFilters";
 
 // Helper function to get first image from array or fallback
 const getProductImage = (images: string[] | undefined): string => {
@@ -28,6 +29,17 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [categories, setCategories] = useState<string[]>([]);
+
+  // Advanced filters state
+  const [filters, setFilters] = useState<{
+    q?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    address?: string;
+    minRating?: number;
+    isNew?: string;
+    isOnPromotion?: boolean;
+  }>({});
 
   // Fetch categories that have products from backend
   useEffect(() => {
@@ -78,6 +90,12 @@ export default function ProductsPage() {
           page: currentPage,
           limit: 12,
           category,
+          minPrice: filters.minPrice,
+          maxPrice: filters.maxPrice,
+          q: filters.q,
+          address: filters.address,
+          minRating: filters.minRating,
+          promotion: filters.isOnPromotion ? 'true' : undefined,
         });
 
         if (response.success && response.data) {
@@ -97,47 +115,21 @@ export default function ProductsPage() {
     };
 
     fetchProducts();
-  }, [selectedCategory, currentPage]);
+  }, [selectedCategory, currentPage, filters]);
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setCurrentPage(1); // Reset to first page when category changes
   };
 
+  const handleFiltersChange = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      {/* Modern Header */}
-      <motion.section
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative py-16 md:py-24 px-4 md:px-6 overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-white"></div>
-
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center space-y-6">
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-4xl md:text-6xl font-display font-bold text-gray-800 leading-tight"
-            >
-              Tous les <span className="gradient-text">produits</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto"
-            >
-              Découvrez notre sélection complète de produits de qualité, soigneusement choisis pour vous
-            </motion.p>
-          </div>
-        </div>
-      </motion.section>
+    <main className="min-h-screen pt-12 bg-white">
+      
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-16">
         {/* Modern Filters & Controls */}
@@ -147,7 +139,13 @@ export default function ProductsPage() {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="bg-white rounded-3xl shadow-lg border border-gray-200 p-6 mb-8"
         >
-          <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+          {/* Advanced Filters */}
+          <ProductFilters
+            onFiltersChange={handleFiltersChange}
+            initialFilters={filters}
+          />
+
+          <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between mt-6">
             {/* Categories */}
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-4">
@@ -235,7 +233,7 @@ export default function ProductsPage() {
                 transition={{ duration: 0.6 }}
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                    ? "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
                     : "space-y-4"
                 }
               >
@@ -248,7 +246,7 @@ export default function ProductsPage() {
                   ];
                   const variantIndex = index % cardVariants.length;
                   const isCompact = true; // Always compact for smaller cards
-                  const hasBadge = index % 3 === 0; // Less frequent badges
+                  const hasBadge = product.createdAt && (new Date().getTime() - new Date(product.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000; // New badge for products created within the last week
 
                   return (
                     <motion.article
@@ -260,8 +258,8 @@ export default function ProductsPage() {
                     >
                       {viewMode === "grid" ? (
                         <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
-                          <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer aspect-square ${cardVariants[variantIndex]}`}>
-                            <div className="relative bg-gray-50 overflow-hidden w-full h-full">
+                          <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer ${cardVariants[variantIndex]}`}>
+                            <div className="relative bg-gray-50 overflow-hidden w-full aspect-square">
                               <LazyImage
                                 src={getProductImage(product.images)}
                                 alt={product.name}
@@ -276,28 +274,38 @@ export default function ProductsPage() {
                                 </div>
                               )}
                               <div className={`absolute inset-0 ${variantIndex === 2 ? 'bg-gradient-to-br from-primary/10 via-transparent to-orange-500/10' : 'bg-gradient-to-t from-black/20 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                              {/* Permanent black gradient at bottom */}
-                              <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
-                              {/* Text content positioned in the black area */}
-                              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                                {product.vendor && (
-                                  <span className="text-xs text-white/90 font-medium truncate block uppercase tracking-wide mb-2">
-                                    {product.vendor.businessName}
-                                  </span>
-                                )}
-                                <h3 className="line-clamp-2 mb-2 leading-tight text-base font-semibold">
-                                  {product.name}
-                                </h3>
-                                <div className="flex items-center justify-between">
-                                  <span className="text-lg font-bold">
-                                    {product.price.toFixed(0)} FCFA
-                                  </span>
-                                  <div className="bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center w-8 h-8 border border-white/20">
-                                    <ArrowRight className="w-4 h-4 text-white" />
-                                  </div>
+                            </div>
+                            <CardContent className="bg-white shadow-2xl p-3">
+                              {product.vendor && (
+                                <span className="text-xs text-gray-500 font-medium truncate block uppercase tracking-wide mb-1">
+                                  {product.vendor.businessName}
+                                </span>
+                              )}
+                              <h3 className="line-clamp-1 sm:line-clamp-2 mb-1 leading-tight text-xs sm:text-sm font-semibold text-gray-800">
+                                {product.name}
+                              </h3>
+                              <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                  {product.promotionalPrice ? (
+                                    <>
+                                      <span className="text-xs sm:text-sm font-bold text-red-600">
+                                        {product.promotionalPrice.toFixed(0)} FCFA
+                                      </span>
+                                      <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                        {product.price.toFixed(0)} FCFA
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="text-sm sm:text-base font-bold text-gray-900">
+                                      {product.price.toFixed(0)} FCFA
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="bg-primary/10 rounded-full flex items-center justify-center w-6 h-6">
+                                  <ArrowRight className="w-3 h-3 text-primary" />
                                 </div>
                               </div>
-                            </div>
+                            </CardContent>
                           </Card>
                         </Link>
                       ) : (
@@ -312,6 +320,12 @@ export default function ProductsPage() {
                                   sizes="96px"
                                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                                 />
+                                {hasBadge && (
+                                  <div className={`absolute top-1 right-1 bg-primary text-white px-1 py-0.5 ${variantIndex === 3 ? 'rounded-full' : 'rounded'} text-xs font-bold shadow-sm flex items-center gap-1 z-10`}>
+                                    <Tag className="w-2 h-2" />
+                                    New
+                                  </div>
+                                )}
                               </div>
                               <CardContent className="flex-1 p-3 items-center">
                                 <div className="flex justify-between items-start">
@@ -325,9 +339,22 @@ export default function ProductsPage() {
                                       </span>
                                     )}
                                   </div>
-                                  <span className="font-bold text-sm text-gray-900 ml-2">
-                                    {product.price.toFixed(0)} FCFA
-                                  </span>
+                                  <div className="flex flex-col items-end ml-2">
+                                    {product.promotionalPrice ? (
+                                      <>
+                                        <span className="font-bold text-sm text-red-600">
+                                          {product.promotionalPrice.toFixed(0)} FCFA
+                                        </span>
+                                        <span className="text-xs text-gray-500 line-through">
+                                          {product.price.toFixed(0)} FCFA
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="font-bold text-sm text-gray-900">
+                                        {product.price.toFixed(0)} FCFA
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
 
                                 <div className="flex items-center justify-between">

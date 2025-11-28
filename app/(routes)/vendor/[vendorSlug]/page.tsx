@@ -161,12 +161,24 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7, duration: 0.6 }}
-                    className="flex items-center justify-center lg:justify-start gap-2"
+                    className="flex items-center justify-center lg:justify-start gap-4"
                   >
-                    <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-orange-500 rounded-full flex items-center justify-center">
-                      <Package className="w-3 h-3 text-white" />
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-gradient-to-br from-orange-600 to-orange-500 rounded-full flex items-center justify-center">
+                        <Package className="w-3 h-3 text-white" />
+                      </div>
+                      <span className="text-sm font-medium text-gray-600">{products.length} produits</span>
                     </div>
-                    <span className="text-sm font-medium text-gray-600">{products.length} produits</span>
+                    {vendor.averageRating && vendor.averageRating > 0 && (
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-gradient-to-br from-yellow-500 to-yellow-400 rounded-full flex items-center justify-center">
+                          <Star className="w-3 h-3 text-white fill-current" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-600">
+                          {vendor.averageRating.toFixed(1)} ({vendor.reviewCount || 0} avis)
+                        </span>
+                      </div>
+                    )}
                   </motion.div>
                 </div>
               </motion.div>

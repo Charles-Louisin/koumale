@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { Modal } from "@/app/components/ui/modal";
-import { Phone, Mail, DownloadCloud, ExternalLink, X, CheckCircle2, ShieldCheck, MessageCircle, Send } from "lucide-react";
+import { Phone, Mail, DownloadCloud, ExternalLink, X, CheckCircle2, ShieldCheck, MessageCircle, Send, Eye } from "lucide-react";
 import { adminApi } from "@/app/lib/api";
 import Image from "next/image";
 import { useToast } from "@/app/hooks/use-toast";
@@ -138,8 +138,8 @@ export default function AdminApprovalsPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
                 {rows.map((v) => (
-                  <Card key={v._id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-orange-200 bg-white">
-                    <CardContent className="p-6">
+                  <Card key={v._id} className="group w-fit h-fit hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-orange-200 bg-white">
+                    <CardContent className="p-2">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
@@ -149,31 +149,31 @@ export default function AdminApprovalsPage() {
                             ) : (
                               <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center text-gray-500 text-xs font-medium">Logo</div>
                             )}
-                            <div>
-                             <p className="text-2xl text-gray-600">{(v.user?.firstName || '') + ' ' + (v.user?.lastName || '')}</p>
-                              <h3 className="font-bold text-lg text-gray-900">{v.businessName}</h3>
+                            <div className="flex flex-col">
+                             <p className="text-[9px] md:text-lg text-gray-600">{(v.user?.firstName || '') + ' ' + (v.user?.lastName || '')}</p>
+                              <h3 className="font-bold text-[10px] md:text-lg text-gray-900">{v.businessName}</h3>
                             </div>
                           </div>
                           <p className="text-sm text-gray-600 break-all mb-2">{v.user?.email}</p>
-                          <div className="flex items-center text-xs text-gray-500">
+                          <div className="flex items-center text-[10px] md:text-xs text-gray-500">
                             <div className="w-2 h-2 bg-orange-400 rounded-full mr-2"></div>
                             Inscrit le {new Date(v.user?.createdAt || '').toLocaleDateString('fr-FR')}
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-3">
+                      <div className="flex  md:flex-row gap-1">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setSelected(v)}
-                          className="flex-1 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                          className="w-[50%] text-[12px] flex items-center justify-center gap-1 border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all"
                         >
-                          Voir détails
+                          Détails
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => onApprove(v.user?._id || '', v._id)}
-                          className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 transition-all"
+                          className="w-[50%] text-[12px] bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0 transition-all"
                         >
                           Approuver
                         </Button>
@@ -183,7 +183,7 @@ export default function AdminApprovalsPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => onReject(v.user?._id || '', v._id)}
-                          className="w-full border-2 border-red-200 hover:bg-red-50 hover:border-red-300 text-red-600 transition-all"
+                          className="w-full text-[13px] border-2 border-red-200 hover:bg-red-50 hover:border-red-300 text-red-600 transition-all"
                         >
                           Rejeter
                         </Button>
@@ -227,10 +227,10 @@ export default function AdminApprovalsPage() {
 
       {/* Modal pour afficher les détails du vendeur */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mx-auto max-h-[90vh] overflow-hidden grid grid-cols-1 md:grid-cols-3">
+        <div className="fixed inset-0 z-50 flex items-center overflow-hidden justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mx-auto max-h-[90vh] overflow-scroll grid grid-cols-1 md:grid-cols-3">
             {/* LEFT: media gallery */}
-            <div className="md:col-span-2 bg-gray-50 p-4 overflow-y-auto">
+            <div className="md:col-span-2 bg-gray-50 p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
                   {selected.logo ? (

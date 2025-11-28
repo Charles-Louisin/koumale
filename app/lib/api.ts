@@ -27,7 +27,11 @@ export interface Vendor {
   logo?: string;
   coverImage?: string;
   documents?: string[];
+  createdAt?: string;
   user?: { email?: string; status?: string };
+  averageRating?: number;
+  reviewCount?: number;
+  productCount?: number;
 }
 
 export interface ProductItem {
@@ -237,7 +241,7 @@ export const vendorApi = {
 
 // API Produits
 export const productsApi = {
-  async list(params: { page?: number; limit?: number; category?: string; vendorSlug?: string; minPrice?: number; maxPrice?: number; q?: string; promotion?: string } = {}) {
+  async list(params: { page?: number; limit?: number; category?: string; vendorSlug?: string; minPrice?: number; maxPrice?: number; q?: string; promotion?: string; address?: string; minRating?: number; isNew?: string } = {}) {
     const query = new URLSearchParams();
     if (params.page) query.set('page', String(params.page));
     if (params.limit) query.set('limit', String(params.limit));
@@ -246,6 +250,10 @@ export const productsApi = {
     if (typeof params.minPrice === 'number') query.set('minPrice', String(params.minPrice));
     if (typeof params.maxPrice === 'number') query.set('maxPrice', String(params.maxPrice));
     if (params.q) query.set('q', params.q);
+    if (params.promotion) query.set('promotion', params.promotion);
+    if (params.isNew) query.set('isNew', params.isNew);
+    if (params.address) query.set('address', params.address);
+    if (typeof params.minRating === 'number') query.set('minRating', String(params.minRating));
     const qs = query.toString();
     return apiRequest<ProductItem[]>(`/api/products${qs ? `?${qs}` : ''}`, {
       method: 'GET',
@@ -304,14 +312,16 @@ export const productsApi = {
 
   // API Vendeurs (boutiques)
 export const vendorsApi = {
-  async list(params: { page?: number; limit?: number; q?: string; sortBy?: 'popular' | 'newest' } = {}) {
+  async list(params: { page?: number; limit?: number; q?: string; sortBy?: 'popular' | 'newest'; address?: string; minRating?: number } = {}) {
     const query = new URLSearchParams();
     if (params.page) query.set('page', String(params.page));
     if (params.limit) query.set('limit', String(params.limit));
     if (params.q) query.set('q', params.q);
     if (params.sortBy) query.set('sortBy', params.sortBy);
+    if (params.address) query.set('address', params.address);
+    if (params.minRating) query.set('minRating', String(params.minRating));
     const qs = query.toString();
-    return apiRequest<Array<Vendor & { _id: string; user?: { status?: string } }>>(`/api/vendors${qs ? `?${qs}` : ''}`, {
+    return apiRequest<Array<Vendor & { _id: string; user?: { status?: string }; averageRating?: number; reviewCount?: number }>>(`/api/vendors${qs ? `?${qs}` : ''}`, {
       method: 'GET',
     });
   },
