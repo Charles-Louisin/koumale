@@ -284,6 +284,18 @@ export default function ProductsPage() {
                               <h3 className="line-clamp-1 sm:line-clamp-2 mb-1 leading-tight text-xs sm:text-sm font-semibold text-gray-800">
                                 {product.name}
                               </h3>
+                              {/* Rating Display */}
+                              {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                                <div className="flex items-center gap-1 mb-1">
+                                  <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                  <span className="text-xs font-medium text-gray-700">
+                                    {product.averageRating.toFixed(1)}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    ({product.reviewCount} avis)
+                                  </span>
+                                </div>
+                              )}
                               <div className="flex items-center justify-between">
                                 <div className="flex flex-col">
                                   {product.promotionalPrice ? (
@@ -337,6 +349,18 @@ export default function ProductsPage() {
                                       <span className="text-xs text-gray-500 truncate block">
                                         {product.vendor.businessName}
                                       </span>
+                                    )}
+                                    {/* Rating Display */}
+                                    {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                                      <div className="flex items-center gap-1 mb-1">
+                                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                        <span className="text-xs font-medium text-gray-700">
+                                          {product.averageRating.toFixed(1)}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          ({product.reviewCount} avis)
+                                        </span>
+                                      </div>
                                     )}
                                   </div>
                                   <div className="flex flex-col items-end ml-2">

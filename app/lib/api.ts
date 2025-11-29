@@ -47,6 +47,8 @@ export interface ProductItem {
   clicks?: number;
   vendor?: { businessName: string; vendorSlug: string };
   createdAt?: string;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 interface ApiResponse<T> {

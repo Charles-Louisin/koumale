@@ -130,7 +130,7 @@ const howItWorksSteps = [
 
 export default function InteractiveHowItWorksSection() {
     const [currentStep, setCurrentStep] = React.useState(0);
-    const [showOverview, setShowOverview] = React.useState(true);
+    const [showOverview, setShowOverview] = React.useState(false);
 
     const step = howItWorksSteps[currentStep];
     const Icon = step.icon;

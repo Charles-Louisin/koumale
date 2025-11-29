@@ -44,6 +44,19 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
         const productsRes = await vendorsApi.getProducts(vendorSlug, { limit: 100 });
         if (productsRes.success && productsRes.data) {
           setProducts(productsRes.data);
+
+          // Calculate vendor rating from products
+          if (vendorRes.success && vendorRes.data) {
+            const productsWithRating = productsRes.data.filter(p => p.averageRating != null && p.reviewCount != null && p.reviewCount > 0);
+            if (productsWithRating.length > 0) {
+              const totalRating = productsWithRating.reduce((sum, p) => sum + p.averageRating!, 0);
+              const totalReviews = productsWithRating.reduce((sum, p) => sum + p.reviewCount!, 0);
+              const averageRating = totalRating / productsWithRating.length;
+              setVendor({ ...vendorRes.data, averageRating, reviewCount: totalReviews });
+            } else {
+              setVendor(vendorRes.data);
+            }
+          }
         }
       } catch (err) {
         console.error("Error fetching vendor data:", err);
@@ -148,7 +161,7 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                     />
                   </div>
                 )}
-                <div className="text-left lg:text-left">
+                <div className=" flex flex-col gap-2 justify-center items-center text-left lg:text-left">
                   <motion.h1
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -169,13 +182,13 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                       </div>
                       <span className="text-sm font-medium text-gray-600">{products.length} produits</span>
                     </div>
-                    {vendor.averageRating && vendor.averageRating > 0 && (
+                    {vendor.averageRating != null && vendor.reviewCount != null && vendor.reviewCount > 0 && (
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 bg-gradient-to-br from-yellow-500 to-yellow-400 rounded-full flex items-center justify-center">
                           <Star className="w-3 h-3 text-white fill-current" />
                         </div>
                         <span className="text-sm font-medium text-gray-600">
-                          {vendor.averageRating.toFixed(1)} ({vendor.reviewCount || 0} avis)
+                          {vendor.averageRating.toFixed(1)} ({vendor.reviewCount} avis)
                         </span>
                       </div>
                     )}
@@ -286,20 +299,6 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
       {/* Products Section */}
       <section className="py-16 md:py-24 px-4 md:px-6">
         <div className="max-w-7xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-12"
-          >
-            <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-4">
-              Nos <span className="gradient-text">produits</span>
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Découvrez notre sélection de produits de qualité, soigneusement choisis pour vous
-            </p>
-          </motion.div>
 
           {/* Category Tabs */}
           {categories.length > 1 && (
@@ -344,8 +343,8 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
             transition={{ duration: 0.6 }}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
           >
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product, index) => {
+            {filteredProducts.length > 0 ? filteredProducts.map((product, index) => {
+              
                 const cardVariants = [
                   "rounded-2xl",
                   "rounded-xl border-l-4 border-l-orange-500",
@@ -392,6 +391,21 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                             <h3 className="line-clamp-2 mb-2 leading-tight text-base font-semibold">
                               {product.name}
                             </h3>
+
+                            {/* Rating Display */}
+                            {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                              <div className="flex items-center gap-1 mb-2">
+                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                                <span className="text-xs font-medium text-white/90">
+                                  {(product.averageRating || 0).toFixed(1)}
+                                </span>
+                                <span className="text-xs text-white/70">
+                                  ({product.reviewCount} avis)
+                                </span>
+                              </div>
+                            )}
+
+
                             <p className="text-white/90 line-clamp-2 mb-3 leading-tight text-sm">
                               {product.description}
                             </p>
@@ -409,7 +423,7 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                     </Link>
                   </motion.article>
                 );
-              })
+              }
             ) : (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}

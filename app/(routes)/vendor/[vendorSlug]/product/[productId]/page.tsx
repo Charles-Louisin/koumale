@@ -52,6 +52,13 @@ export default function ProductPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalCurrentIndex, setModalCurrentIndex] = useState(0);
 
+  // Calculate average rating from reviews
+  const calculatedAverageRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return sum / reviews.length;
+  }, [reviews]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -90,12 +97,50 @@ export default function ProductPage({
           // Ignorer les erreurs côté vendeur pour ne pas bloquer la page
         }
 
-        // Produits similaires (même boutique)
+        // Produits similaires (même catégorie + promotions si applicable)
         try {
-          const similarRes = await vendorsApi.getProducts(vendorSlug, { limit: 8 });
-          if (!cancelled && similarRes.success && Array.isArray(similarRes.data)) {
-            const filtered = similarRes.data.filter((item) => item._id !== productData._id);
-            setSimilarProducts(filtered.slice(0, 4));
+          const similarProductsPromises = [];
+
+          // Produits de la même catégorie
+          if (productData.category) {
+            similarProductsPromises.push(
+              productsApi.list({
+                category: productData.category,
+                limit: 8
+              })
+            );
+          }
+
+          // Si le produit est en promotion, ajouter d'autres produits en promotion
+          if (productData.promotionalPrice && productData.promotionalPrice > 0) {
+            similarProductsPromises.push(
+              productsApi.list({
+                promotion: "true",
+                limit: 8
+              })
+            );
+          }
+
+          const results = await Promise.all(similarProductsPromises);
+
+          let allSimilarProducts: ProductItem[] = [];
+
+          results.forEach(result => {
+            if (result.success && Array.isArray(result.data)) {
+              allSimilarProducts = allSimilarProducts.concat(result.data);
+            }
+          });
+
+          // Supprimer les doublons et exclure le produit actuel
+          const uniqueProducts = allSimilarProducts
+            .filter((item, index, self) =>
+              index === self.findIndex(p => p._id === item._id) &&
+              item._id !== productData._id
+            )
+            .slice(0, 8);
+
+          if (!cancelled) {
+            setSimilarProducts(uniqueProducts);
           }
         } catch {
           if (!cancelled) {
@@ -412,6 +457,27 @@ export default function ProductPage({
                 {product.name}
               </motion.h1>
 
+              {/* Rating Display */}
+              {reviews.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45, duration: 0.6 }}
+                  className="flex items-center gap-2 mb-4"
+                >
+                  <div className="flex items-center gap-1">
+                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                    <span className="text-lg font-semibold text-gray-800">
+                      {calculatedAverageRating.toFixed(1)}
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-600">
+                    ({reviews.length} avis)
+                  </span>
+                </motion.div>
+              )}
+              
+
               {product.promotionalPrice ? (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -604,22 +670,21 @@ export default function ProductPage({
               <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-800 mb-4">
                 Produits <span className="gradient-text">similaires</span>
               </h2>
-              <p className="text-lg text-gray-600">
-                Découvrez d&apos;autres produits qui pourraient vous intéresser
-              </p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {similarProducts.map((item, index) => {
                 const image = item.images?.[0] ?? FALLBACK_THUMB;
+                const displayPrice = item.promotionalPrice && item.promotionalPrice > 0 ? item.promotionalPrice : item.price;
+                const originalPrice = item.promotionalPrice && item.promotionalPrice > 0 ? item.price : null;
                 const priceLabel = (() => {
                   try {
                     return new Intl.NumberFormat("fr-FR", {
                       style: "currency",
                       currency: "XOF"
-                    }).format(item.price);
+                    }).format(displayPrice);
                   } catch {
-                    return `${item.price} FCFA`;
+                    return `${displayPrice} FCFA`;
                   }
                 })();
 
@@ -640,6 +705,11 @@ export default function ProductPage({
                             style={{ backgroundImage: `url(${image})` }}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          {item.promotionalPrice && item.promotionalPrice > 0 && (
+                            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                              Promo
+                            </div>
+                          )}
                         </div>
                         <CardContent className="p-3">
                           <h3 className="line-clamp-2 mb-1 group-hover:text-primary transition-colors leading-tight text-sm font-medium">
@@ -648,10 +718,38 @@ export default function ProductPage({
                           <p className="text-gray-600 line-clamp-1 mb-2 leading-tight text-xs">
                             {item.description}
                           </p>
+                          {/* Rating Display */}
+                          {item.averageRating != null && item.reviewCount != null && item.reviewCount > 0 && (
+                            <div className="flex items-center gap-1 mb-2">
+                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                              <span className="text-xs font-medium text-gray-700">
+                                {item.averageRating.toFixed(1)}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({item.reviewCount} avis)
+                              </span>
+                            </div>
+                          )}
                           <div className="flex items-center justify-between">
-                            <span className="text-sm font-bold text-gray-900">
-                              {priceLabel}
-                            </span>
+                            <div className="flex flex-col">
+                              {originalPrice ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-bold text-red-600">
+                                    {priceLabel}
+                                  </span>
+                                  <span className="text-xs text-gray-500 line-through">
+                                    {new Intl.NumberFormat("fr-FR", {
+                                      style: "currency",
+                                      currency: "XOF"
+                                    }).format(originalPrice)}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm font-bold text-gray-900">
+                                  {priceLabel}
+                                </span>
+                              )}
+                            </div>
                             <div className="bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors w-6 h-6">
                               <ArrowRight className="w-3 h-3 text-primary" />
                             </div>

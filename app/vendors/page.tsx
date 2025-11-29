@@ -105,7 +105,7 @@ export default function VendorsPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6 }}
-                className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
               >
                 {vendors.map((vendor, index) => {
                   const cardVariants = [
@@ -138,7 +138,7 @@ export default function VendorsPage() {
                             />
                             <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-gradient-to-br from-orange-500/15 via-transparent to-orange-500/15' : 'bg-gradient-to-t from-black/40 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                             {vendor.logo && (
-                              <div className={`absolute border-3 border-white overflow-hidden shadow-xl bg-white ${logoPosition === 0 ? '-bottom-2 left-2 w-12 h-12 rounded-lg' : logoPosition === 1 ? '-bottom-5 right-2 w-11 h-11 rounded-full' : 'top-2 left-2 w-14 h-14 rounded-xl'}`}>
+                              <div className={`absolute border-3 border-white overflow-hidden shadow-xl bg-white ${logoPosition === 0 ? '-bottom-2 left-2 w-12 h-12 rounded-lg' : logoPosition === 1 ? '-bottom-3 right-2 w-13 h-13 rounded-full' : 'top-2 left-2 w-14 h-14 rounded-xl'}`}>
                                 <LazyImage
                                   src={vendor.logo}
                                   alt={`Logo ${vendor.businessName}`}
@@ -164,7 +164,7 @@ export default function VendorsPage() {
                                 <div className="flex items-center gap-1 text-yellow-400 ml-1">
                                   <Star className="w-3 h-3 fill-current" />
                                   <span className="text-xs font-medium text-gray-700">
-                                    {vendor.averageRating.toFixed(1)}
+                                    {vendor.averageRating.toFixed(1)} ({vendor.reviewCount} avis)
                                   </span>
                                 </div>
                               )}
@@ -177,7 +177,7 @@ export default function VendorsPage() {
                               <MapPin className="w-2.5 h-2.5" />
                               <span>{vendor.address || "Cameroun"}</span>
                             </div>
-                              <div className="bg-orange-500/10 rounded-full flex items-center justify-center group-hover:bg-green-500/20 transition-colors w-5 h-5">
+                              <div className="rounded-full flex items-center justify-center group-hover:bg-green-500/20 transition-colors w-5 h-5">
                                 <ArrowRight className="w-2.5 h-2.5 text-orange-600" />
                               </div>
                             </div>

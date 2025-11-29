@@ -128,15 +128,6 @@ export function Footer() {
                   Nous contacter
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/returns"
-                  className="text-sm text-neutral-600 hover:text-primary transition-colors flex items-center group"
-                >
-                  <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  Retours
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -148,7 +139,7 @@ export function Footer() {
                 <svg className="w-5 h-5 mr-2 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
-                <a href="mailto:contact@vendtout.com" className="hover:text-primary transition-colors">
+                <a href="mailto:clynlouisin@gmail.com" className="hover:text-primary transition-colors">
                   clynlouisin@gmail.com
                 </a>
               </li>
@@ -160,7 +151,7 @@ export function Footer() {
                   +237 682601458
                 </a>
               </li>
-              <li className="flex items-start pt-2">
+              <li className="flex items-start">
                 <svg className="w-5 h-5 mr-2 mt-0.5 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
