@@ -88,11 +88,10 @@ export default function RegisterPage() {
         formData.lastName
       );
 
-      if (response.success && response.token) {
-        authStorage.setToken(response.token);
-        success("Inscription réussie ! Bienvenue sur KOUMALE !");
+      if (response.success) {
+        success("Inscription réussie ! Vérifiez votre email pour continuer.");
         setTimeout(() => {
-          router.push("/");
+          router.push(`/auth/verify-email?email=${encodeURIComponent(formData.email)}`);
         }, 500);
       }
     } catch (err) {
@@ -137,7 +136,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Bouton Google */}
-            <div className="mb-6">
+            {/* <div className="mb-6">
               <Button
                 type="button"
                 onClick={handleGoogleRegister}
@@ -154,7 +153,6 @@ export default function RegisterPage() {
               </Button>
             </div>
 
-            {/* Séparateur */}
            <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
@@ -162,7 +160,7 @@ export default function RegisterPage() {
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white text-gray-500">ou</span>
               </div>
-            </div>
+            </div> */}
 
             {/* Formulaire */}
             <form onSubmit={handleSubmit} className="space-y-4">

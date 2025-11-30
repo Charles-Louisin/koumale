@@ -59,7 +59,15 @@ export default function LoginPage() {
         }, 500);
       }
     } catch (err) {
-      error(err instanceof Error ? err.message : "Une erreur est survenue lors de la connexion");
+      const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue lors de la connexion";
+
+      // Vérifier si l'erreur indique une vérification email requise
+      if (errorMessage.includes("vérifier votre email")) {
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+
+      error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -101,7 +109,7 @@ export default function LoginPage() {
             </div>
 
             {/* Bouton Google */}
-            <div className="mb-6">
+            {/* <div className="mb-6">
             <Button
               type="button"
               onClick={handleGoogleLogin}
@@ -125,7 +133,7 @@ export default function LoginPage() {
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white text-gray-500">ou</span>
             </div>
-          </div>
+          </div> */}
 
             {/* Formulaire */}
             <form onSubmit={handleSubmit} className="space-y-4">

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Star } from "lucide-react";
 import { useToast } from "../../hooks/use-toast";
-import { productsApi, vendorsApi } from "@/app/lib/api";
+import { productsApi, vendorsApi, authStorage } from "@/app/lib/api";
 
 interface ReviewFormProps {
   productId?: string;
@@ -19,11 +19,21 @@ export function ReviewForm({ productId, vendorSlug, onReviewSubmitted }: ReviewF
 
   const { success, error: toastError } = useToast();
 
+  // Check if user is logged in
+  const isLoggedIn = !!authStorage.getToken();
+
   // Determine which API to use
   const api = productId ? productsApi : vendorSlug ? vendorsApi : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Vérifier si l'utilisateur est connecté
+    if (!isLoggedIn) {
+      toastError("Vous devez être connecté pour laisser un avis.");
+      return;
+    }
+
     if (!api) {
       toastError("Endpoint de revue non défini.");
       return;
@@ -71,12 +81,16 @@ export function ReviewForm({ productId, vendorSlug, onReviewSubmitted }: ReviewF
           return (
             <Star
               key={star}
-              className={`w-8 h-8 cursor-pointer transition-colors ${
-                filled ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+              className={`w-8 h-8 transition-colors ${
+                isLoggedIn
+                  ? filled
+                    ? "text-yellow-400 fill-yellow-400 cursor-pointer"
+                    : "text-gray-300 cursor-pointer"
+                  : "text-gray-200 cursor-not-allowed"
               }`}
-              onMouseEnter={() => setHoverRating(star)}
-              onMouseLeave={() => setHoverRating(0)}
-              onClick={() => setRating(star)}
+              onMouseEnter={isLoggedIn ? () => setHoverRating(star) : undefined}
+              onMouseLeave={isLoggedIn ? () => setHoverRating(0) : undefined}
+              onClick={isLoggedIn ? () => setRating(star) : undefined}
               aria-label={`${star} étoile${star > 1 ? "s" : ""}`}
             />
           );
@@ -88,15 +102,20 @@ export function ReviewForm({ productId, vendorSlug, onReviewSubmitted }: ReviewF
         placeholder="Votre commentaire..."
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        disabled={submitting}
+        disabled={submitting || !isLoggedIn}
       />
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !isLoggedIn}
         className="w-full bg-primary text-white font-semibold py-2 rounded-md hover:bg-primary-dark transition-colors disabled:opacity-50"
       >
         {submitting ? "Envoi..." : "Envoyer"}
       </button>
+      {!isLoggedIn && (
+        <p className="text-sm text-gray-500 mt-2 text-center">
+          Vous devez être connecté pour laisser un avis.
+        </p>
+      )}
     </form>
   );
 }

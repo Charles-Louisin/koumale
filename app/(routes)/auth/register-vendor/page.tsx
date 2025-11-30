@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/Tabs";
 import { UploadFile } from "@/app/components/ui/upload-file";
 import { Modal } from "@/app/components/ui/modal";
-import { Store, Mail, Lock, Building2, FileText, ArrowRight, Upload, CheckCircle2, ArrowLeft, Eye, EyeOff, MessageCircle, AlertTriangle, AlertCircleIcon, Check, X, Loader2 } from "lucide-react";
+import { Store, Building2, FileText, ArrowRight, Upload, CheckCircle2, ArrowLeft, MessageCircle, AlertTriangle, AlertCircleIcon, Check, X, Loader2 } from "lucide-react";
 import { authApi, authStorage } from "@/app/lib/api";
 import { useToast } from "@/app/hooks/use-toast";
 import { ToastContainer } from "@/app/components/ui/toast";
@@ -20,21 +20,19 @@ import Image from "next/image";
 export default function RegisterVendorPage() {
   const router = useRouter();
   const { toasts, success, error, removeToast } = useToast();
-  const [activeTab, setActiveTab] = useState("account");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("business");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [continueLoading, setContinueLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Données du formulaire
-  const [accountData, setAccountData] = useState({
+  const [user, setUser] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    password: "",
-    confirmPassword: "",
   });
 
   const [businessData, setBusinessData] = useState({
@@ -96,13 +94,7 @@ export default function RegisterVendorPage() {
     }));
   };
 
-  const handleAccountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAccountData({
-      ...accountData,
-      [e.target.id]: e.target.value,
-    });
-    setTouched((t) => ({ ...t, [e.target.id]: true }));
-  };
+
 
   const handleBusinessChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = e.target.value;
@@ -148,39 +140,72 @@ export default function RegisterVendorPage() {
 
   const emailError = useMemo(() => {
     if (!touched.email) return "";
-    if (!accountData.email) return "Email requis";
-    const valid = /^\S+@\S+\.\S+$/.test(accountData.email);
+    if (!user.email) return "Email requis";
+    const valid = /^\S+@\S+\.\S+$/.test(user.email);
     return valid ? "" : "Format d'email invalide";
-  }, [accountData.email, touched.email]);
+  }, [user.email, touched.email]);
 
-  // Préremplissage si connecté
+  // Vérification d'authentification - redirection si non connecté
   React.useEffect(() => {
-    authApi.getMe().then((res) => {
-      if (res.success && res.user) {
-        setAccountData((d) => ({
-          ...d,
-          email: res.user?.email || d.email,
-          firstName: res.user?.firstName || d.firstName,
-          lastName: res.user?.lastName || d.lastName,
-        }));
-        setIsLoggedIn(true);
+    const checkAuth = async () => {
+      try {
+        const res = await authApi.getMe();
+        if (res.success && res.user) {
+          setUser((d) => ({
+            ...d,
+            email: res.user?.email || d.email,
+            firstName: res.user?.firstName || d.firstName,
+            lastName: res.user?.lastName || d.lastName,
+          }));
+          setIsLoggedIn(true);
+        } else {
+          // User not logged in, redirect to register page with toast
+          // error("Il faut s'inscrire avant de créer une boutique");
+          // router.push('/auth/register');
+          return;
+        }
+      } catch (err) {
+        // User not logged in, redirect to register page with toast
+        error("Il faut s'inscrire avant de créer une boutique");
+        router.push('/auth/register');
+        return;
       }
-    }).catch(() => { });
+    };
+
+    checkAuth();
+  }, [router, error]);
+
+  // Préremplissage si connecté ou après vérification email
+  React.useEffect(() => {
+    // Check for query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    const verifiedParam = urlParams.get('verified');
+
+    if (tabParam === 'business') {
+      setActiveTab('business');
+    }
+
+    // Check for stored registration data from email verification
+    const storedData = sessionStorage.getItem('registerVendorData');
+    if (storedData && verifiedParam === 'true') {
+      try {
+        const registrationData = JSON.parse(storedData);
+        setUser((d) => ({
+          ...d,
+          email: registrationData.email || d.email,
+          firstName: registrationData.firstName || d.firstName,
+          lastName: registrationData.lastName || d.lastName,
+        }));
+        // Clear the stored data
+        sessionStorage.removeItem('registerVendorData');
+      } catch (error) {
+        console.error('Error parsing stored registration data:', error);
+      }
+    }
   }, []);
 
-  const passwordError = useMemo(() => {
-    if (!touched.password) return "";
-    // If user is logged in, password is optional (leave empty to keep current password)
-    if (!accountData.password) return isLoggedIn ? "" : "Mot de passe requis";
-    return accountData.password.length < 8 ? "Au moins 8 caractères" : "";
-  }, [accountData.password, touched.password, isLoggedIn]);
 
-  const confirmPasswordError = useMemo(() => {
-    if (!touched.confirmPassword) return "";
-    // If logged in and password is empty, no need to match
-    if (isLoggedIn && !accountData.password && !accountData.confirmPassword) return "";
-    return accountData.password === accountData.confirmPassword ? "" : "Les mots de passe ne correspondent pas";
-  }, [accountData.password, accountData.confirmPassword, touched.confirmPassword, isLoggedIn]);
 
   const businessNameError = useMemo(() => {
     if (!touched.businessName) return "";
@@ -212,41 +237,8 @@ export default function RegisterVendorPage() {
     return valid ? "" : "Le numéro doit commencer par 6 et contenir 9 chiffres";
   }, [businessData.whatsappLink, touched.whatsappLink]);
 
-  const handleNext = useCallback(() => {
-    if (activeTab === "account") {
-      // Validation de l'onglet compte
-      if (!accountData.email) {
-        error("Veuillez renseigner votre email");
-        return;
-      }
-
-      // If user is not logged in, password is required. If logged in, password is optional.
-      if (!isLoggedIn) {
-        if (!accountData.password || !accountData.confirmPassword) {
-          error("Veuillez remplir tous les champs obligatoires");
-          return;
-        }
-        if (accountData.password !== accountData.confirmPassword) {
-          error("Les mots de passe ne correspondent pas");
-          return;
-        }
-        if (accountData.password.length < 8) {
-          error("Le mot de passe doit contenir au moins 8 caractères");
-          return;
-        }
-      } else if (accountData.password || accountData.confirmPassword) {
-        // If logged in but user provided a new password, validate it
-        if (accountData.password !== accountData.confirmPassword) {
-          error("Les mots de passe ne correspondent pas");
-          return;
-        }
-        if (accountData.password.length < 8) {
-          error("Le mot de passe doit contenir au moins 8 caractères");
-          return;
-        }
-      }
-      setActiveTab("business");
-    } else if (activeTab === "business") {
+  const handleNext = useCallback(async () => {
+    if (activeTab === "business") {
       // Validation de l'onglet entreprise
       if (!businessData.businessName || !businessData.description || !businessData.contactPhone) {
         error("Veuillez remplir tous les champs obligatoires");
@@ -261,9 +253,13 @@ export default function RegisterVendorPage() {
         error("Vérification du nom d'entreprise en cours. Veuillez patienter.");
         return;
       }
-      setActiveTab("documents");
+      setContinueLoading(true);
+      setTimeout(() => {
+        setActiveTab("documents");
+        setContinueLoading(false);
+      }, 100);
     }
-  }, [activeTab, accountData.email, accountData.password, accountData.confirmPassword, isLoggedIn, businessData.businessName, businessData.description, businessData.contactPhone, businessNameAvailable, error]);
+  }, [activeTab, businessData.businessName, businessData.description, businessData.contactPhone, businessNameAvailable, error, setContinueLoading, setActiveTab]);
 
   const handleBack = () => {
     if (activeTab === "business") {
@@ -276,6 +272,8 @@ export default function RegisterVendorPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (submitted) return; // Prevent multiple submissions
+
     // Validate justificative documents presence
     if (documentData.documents.length === 0) {
       error("Vous devez fournir vos documents justificatifs.");
@@ -283,13 +281,13 @@ export default function RegisterVendorPage() {
     }
 
     setLoading(true);
+    setSubmitted(true);
 
     try {
       const response = await authApi.registerVendor({
-        email: accountData.email,
-        password: accountData.password,
-        firstName: accountData.firstName || undefined,
-        lastName: accountData.lastName || undefined,
+        email: user.email,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
         businessName: businessData.businessName,
         description: businessData.description,
         contactPhone: businessData.contactPhone,
@@ -304,11 +302,14 @@ export default function RegisterVendorPage() {
       if (response.success && response.token) {
         authStorage.setToken(response.token);
         setShowSuccessModal(true);
+      } else {
+        error(response.message || "Une erreur est survenue lors de l'inscription");
       }
     } catch (err) {
       error(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription");
     } finally {
       setLoading(false);
+      setSubmitted(false);
     }
   };
 
@@ -393,11 +394,7 @@ export default function RegisterVendorPage() {
             {/* Formulaire avec tabs */}
             <form onSubmit={handleSubmit}>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-3 mb-6">
-                  <TabsTrigger value="account" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
-                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                    <span>Compte</span>
-                  </TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="business" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm">
                     <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                     <span>Entreprise</span>
@@ -407,116 +404,6 @@ export default function RegisterVendorPage() {
                     <span>Documents</span>
                   </TabsTrigger>
                 </TabsList>
-
-                {/* Onglet Compte */}
-                <TabsContent value="account" className="space-y-4">
-                  <div className="space-y-4 py-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">Prénom</Label>
-                        <Input
-                          id="firstName"
-                          placeholder="Jean"
-                          value={accountData.firstName}
-                          onChange={handleAccountChange}
-                          disabled={loading}
-                          className="transition-all focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Nom</Label>
-                        <Input
-                          id="lastName"
-                          placeholder="Dupont"
-                          value={accountData.lastName}
-                          onChange={handleAccountChange}
-                          disabled={loading}
-                          className="transition-all focus:ring-2 focus:ring-primary"
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-gray-500" />
-                        Email
-                      </Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="exemple@email.com"
-                        value={accountData.email}
-                        onChange={handleAccountChange}
-                        required
-                        disabled={loading}
-                        className={`transition-all focus:ring-2 ${emailError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-primary'}`}
-                      />
-                      {emailError && <p className="text-xs text-red-600 mt-1">{emailError}</p>}
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="password" className="flex items-center gap-2">
-                        <Lock className="w-4 h-4 text-gray-500" />
-                        Mot de passe
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          id="password"
-                          type={showPassword ? "text" : "password"}
-                          value={accountData.password}
-                          onChange={handleAccountChange}
-                          required={!isLoggedIn}
-                          disabled={loading}
-                          className={`transition-all focus:ring-2 pr-10 ${passwordError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-primary'}`}
-                        />
-                        {passwordError && <p className="text-xs text-red-600 mt-1">{passwordError}</p>}
-                        {isLoggedIn && (
-                          <div className="mt-2 bg-yellow-50 border border-yellow-200 rounded-md p-3 text-yellow-900 text-sm flex items-start gap-2">
-                            <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5 text-yellow-700" />
-                            <div>
-                              <strong>Attention :</strong> Vous êtes actuellement connecté. Si vous renseignez un nouveau mot de passe ici, l&apos;ancien mot de passe sera remplacé pour votre compte. Laissez ce champ vide pour conserver votre mot de passe actuel.
-                            </div>
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                          aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                      <div className="relative">
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={accountData.confirmPassword}
-                          onChange={handleAccountChange}
-                          required={!isLoggedIn}
-                          disabled={loading}
-                          className={`transition-all focus:ring-2 pr-10 ${confirmPasswordError ? 'border-red-500 focus:ring-red-500' : 'focus:ring-primary'}`}
-                        />
-                        {confirmPasswordError && <p className="text-xs text-red-600 mt-1">{confirmPasswordError}</p>}
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                          aria-label={showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                        >
-                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex justify-end pt-2">
-                      <Button type="button" onClick={handleNext} className="group" disabled={loading}>
-                        Continuer
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
-                    </div>
-                  </div>
-                </TabsContent>
 
                 {/* Onglet Entreprise */}
                 <TabsContent value="business" className="space-y-4">

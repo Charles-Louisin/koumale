@@ -125,7 +125,7 @@ export const authApi = {
   // Inscription vendeur
   async registerVendor(data: {
     email: string;
-    password: string;
+    password?: string;
     firstName?: string;
     lastName?: string;
     businessName: string;
