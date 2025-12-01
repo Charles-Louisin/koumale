@@ -136,7 +136,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Bouton Google */}
-            {/* <div className="mb-6">
+            <div className="mb-6">
               <Button
                 type="button"
                 onClick={handleGoogleRegister}
@@ -160,7 +160,7 @@ export default function RegisterPage() {
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white text-gray-500">ou</span>
               </div>
-            </div> */}
+            </div>
 
             {/* Formulaire */}
             <form onSubmit={handleSubmit} className="space-y-4">
