@@ -132,7 +132,7 @@ export default function HelpPage() {
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Email</h3>
               <p className="text-gray-600 mb-4">support@koumale.com</p>
               <Link
-                href="mailto:support@koumale.com"
+                href="mailto:clynlouisin@gmail.com"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Envoyer un email
@@ -143,11 +143,11 @@ export default function HelpPage() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MessageCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Chat en ligne</h3>
-              <p className="text-gray-600 mb-4">Disponible 24/7</p>
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">Whatsapp</h3>
+              <p className="text-gray-600 mb-4">+237 682601458</p>
+              {/* <button className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                 Démarrer le chat
-              </button>
+              </button> */}
             </div>
 
             <div className="text-center">
@@ -155,13 +155,13 @@ export default function HelpPage() {
                 <Phone className="w-8 h-8 text-purple-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Téléphone</h3>
-              <p className="text-gray-600 mb-4">+225 XX XX XX XX XX</p>
-              <Link
+              <p className="text-gray-600 mb-4">+237 682601458</p>
+              {/* <Link
                 href="tel:+225XXXXXXXXX"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Appeler maintenant
-              </Link>
+              </Link> */}
             </div>
           </div>
         </div>

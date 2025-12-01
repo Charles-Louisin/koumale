@@ -181,7 +181,7 @@ export default function InteractiveHowItWorksSection() {
                         onClick={toggleOverview}
                         className="mt-4 px-4 py-2 bg-white text-primary rounded-full text-sm font-medium hover:bg-primary/5 transition-colors border border-primary/20"
                     >
-                        {showOverview ? "Masquer l'aperçu" : "Voir tous les étapes"}
+                        {showOverview ? "Masquer l'aperçu" : "Voir toutes les étapes"}
                     </button>
                 </motion.div>
 

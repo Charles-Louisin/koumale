@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { LazyImage } from "@/app/components/ui/lazy-image";
+import { SkeletonLoading } from "@/app/components/ui/skeleton-loading";
 import { vendorsApi, Vendor } from "@/app/lib/api";
 import { motion } from "framer-motion";
 import { Store, ArrowRight, Sparkles, Star, Users, MapPin, Award } from "lucide-react";
@@ -74,14 +75,7 @@ export default function VendorsPage() {
 
         {/* Loading State */}
         {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <div className="inline-block w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-500">Chargement des boutiques...</p>
-          </motion.div>
+          <SkeletonLoading type="vendors" count={12} />
         )}
 
         {/* Error State */}

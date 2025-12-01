@@ -702,7 +702,7 @@ export function Navbar() {
 
           {/* Catégories Section - Visible uniquement en haut de page */}
           <AnimatePresence>
-            {isAtTop && categories.length > 0 && (
+            {categories.length > 0 && isAtTop && (
               <motion.section
                 key="categories"
                 initial={{ opacity: 0, y: -20 }}
@@ -776,27 +776,29 @@ export function Navbar() {
                 </Link>
 
                 {/* Section catégories */}
-                <div className="pt-6 mt-6 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Catégories</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    {categories.slice(0, 6).map((category) => (
-                      <Link
-                        key={category.slug}
-                        href={`/products?category=${category.slug}`}
-                        className="flex flex-col items-center gap-2 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
-                        onClick={() => { setIsMenuOpen(false); }}
-                      >
-                        <category.Icon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-                        <span className="text-sm font-medium text-gray-700 text-center">{category.name}</span>
+                {/* {categories.length > 0 && (
+                  <div className="pt-6 mt-6 border-t border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Catégories</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {categories.slice(0, 6).map((category) => (
+                        <Link
+                          key={category.slug}
+                          href={`/products?category=${category.slug}`}
+                          className="flex flex-col items-center gap-2 p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-200 group"
+                          onClick={() => { setIsMenuOpen(false); }}
+                        >
+                          <category.Icon className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
+                          <span className="text-sm font-medium text-gray-700 text-center">{category.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                    {categories.length > 6 && (
+                      <Link href="/products" className="block mt-4 text-center text-sm text-primary hover:text-primary/80 font-medium" onClick={() => { setIsMenuOpen(false); }}>
+                        Voir toutes les catégories →
                       </Link>
-                    ))}
+                    )}
                   </div>
-                  {categories.length > 6 && (
-                    <Link href="/products" className="block mt-4 text-center text-sm text-primary hover:text-primary/80 font-medium" onClick={() => { setIsMenuOpen(false); }}>
-                      Voir toutes les catégories →
-                    </Link>
-                  )}
-                </div>
+                )} */}
 
                 {/* Section compte utilisateur */}
                 <div className="pt-6 mt-6 border-t border-gray-200">

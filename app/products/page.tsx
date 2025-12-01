@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import ProductsPage from "./Productpage";
+import { SkeletonLoading } from "@/app/components/ui/skeleton-loading";
 
 export default function Page() {
   return (
-    <Suspense fallback={<p>Chargement des produits...</p>}>
+    <Suspense fallback={<SkeletonLoading type="products" count={12} />}>
       <ProductsPage />
     </Suspense>
   );

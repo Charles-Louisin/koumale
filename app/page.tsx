@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import ChatClient from "./components/ai/chat-assistant";
 import { LazyImage } from "./components/ui/lazy-image";
+import { SkeletonLoading } from "./components/ui/skeleton-loading";
 import { Card, CardContent } from "./components/ui/card";
 import { productsApi, vendorsApi, ProductItem, Vendor, API_BASE_URL } from "./lib/api";
 import { motion } from "framer-motion";
@@ -123,56 +124,57 @@ export default function Home() {
       }
     };
 
-      // const fetchAppReviews = async () => {
-      //   setReviewsLoading(true);
-      //   setReviewsError(null);
-      //   try {
-      //     // Fetch app reviews, type 'app' to distinguish from product/vendor reviews
-      //     const res = await fetch(`${API_BASE_URL}/api/reviews?type=app&page=1&limit=10`).then(r => r.json());
-      //     if (res.success && res.data) {
-      //       setAppReviews(res.data);
-      //     } else {
-      //       setReviewsError("Erreur lors du chargement des avis");
-      //     }
-      //   } catch (err) {
-      //     console.error("Error fetching app reviews:", err);
-      //     setReviewsError("Erreur lors du chargement des avis");
-      //   } finally {
-      //     setReviewsLoading(false);
-      //   }
-      // };
-
-      fetchData();
-      // fetchAppReviews();
-    }, []);
-
-    // const fetchAppReviewsCallback = () => {
+    // const fetchAppReviews = async () => {
     //   setReviewsLoading(true);
-    //   fetch(`${API_BASE_URL}/api/reviews?type=app&page=1&limit=10`)
-    //     .then(r => r.json())
-    //     .then(res => {
-    //       if (res.success && res.data) {
-    //         setAppReviews(res.data);
-    //         setReviewsError(null);
-    //       } else {
-    //         setReviewsError("Erreur lors du chargement des avis");
-    //       }
-    //     })
-    //     .catch(() => {
+    //   setReviewsError(null);
+    //   try {
+    //     // Fetch app reviews, type 'app' to distinguish from product/vendor reviews
+    //     const res = await fetch(`${API_BASE_URL}/api/reviews?type=app&page=1&limit=10`).then(r => r.json());
+    //     if (res.success && res.data) {
+    //       setAppReviews(res.data);
+    //     } else {
     //       setReviewsError("Erreur lors du chargement des avis");
-    //     })
-    //     .finally(() => {
-    //       setReviewsLoading(false);
-    //     });
+    //     }
+    //   } catch (err) {
+    //     console.error("Error fetching app reviews:", err);
+    //     setReviewsError("Erreur lors du chargement des avis");
+    //   } finally {
+    //     setReviewsLoading(false);
+    //   }
     // };
 
+    fetchData();
+    // fetchAppReviews();
+  }, []);
+
+  // const fetchAppReviewsCallback = () => {
+  //   setReviewsLoading(true);
+  //   fetch(`${API_BASE_URL}/api/reviews?type=app&page=1&limit=10`)
+  //     .then(r => r.json())
+  //     .then(res => {
+  //       if (res.success && res.data) {
+  //         setAppReviews(res.data);
+  //         setReviewsError(null);
+  //       } else {
+  //         setReviewsError("Erreur lors du chargement des avis");
+  //       }
+  //     })
+  //     .catch(() => {
+  //       setReviewsError("Erreur lors du chargement des avis");
+  //     })
+  //     .finally(() => {
+  //       setReviewsLoading(false);
+  //     });
+  // };
 
 
-    return (
-      <main className="min-h-screen bg-white">
-      
 
-        {/* Promotions Flash - Modern Carousel */}
+  return (
+    <main className="min-h-screen bg-white">
+
+
+      {/* Promotions Flash - Modern Carousel */}
+      {promotionProducts.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-white" aria-labelledby="promotions-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -205,13 +207,10 @@ export default function Home() {
             </motion.div>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-500">Chargement des promotions...</p>
-              </div>
+              <SkeletonLoading type="promotions" count={6} />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                
+
                 {promotionProducts.length > 0 ? promotionProducts.map((product, index) => {
                   const cardVariants = [
                     // Variant 1: Standard square with rounded corners
@@ -315,8 +314,11 @@ export default function Home() {
             )}
           </div>
         </section>
+      )}
 
-        {/* Trending Products - Bento Grid Style */}
+
+      {/* Trending Products - Bento Grid Style */}
+      {trendingProducts.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-gradient-to-br from-gray-50 to-white" aria-labelledby="trending-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -436,11 +438,13 @@ export default function Home() {
             )}
           </div>
         </section>
+      )}
 
-        {/* Why Choose KOUMALE - Interactive Learning Experience */}
-        <InteractiveWhySection />
+      {/* Why Choose KOUMALE - Interactive Learning Experience */}
+      <InteractiveWhySection />
 
-        {/* New Products - Horizontal Scroll */}
+      {/* New Products - Horizontal Scroll */}
+      {newProducts.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-white" aria-labelledby="new-products-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -473,10 +477,7 @@ export default function Home() {
             </motion.div>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-500">Chargement des produits...</p>
-              </div>
+              <SkeletonLoading type="products" count={6} />
             ) : (
               <div className="overflow-x-auto scrollbar-hide">
                 <div className="flex gap-4 pb-4" style={{ minWidth: 'min-content' }}>
@@ -501,7 +502,7 @@ export default function Home() {
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-100 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            
+
                             <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                               {product.vendor && (
                                 <span className="text-xs text-white/90 font-medium truncate block uppercase tracking-wide mb-2">
@@ -544,8 +545,10 @@ export default function Home() {
             )}
           </div>
         </section>
+      )}
 
-        {/* New Vendors - Modern Cards */}
+      {/* New Vendors - Modern Cards */}
+      {newVendors.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-white" aria-labelledby="new-vendors-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -578,10 +581,7 @@ export default function Home() {
             </motion.div>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-500">Chargement des boutiques...</p>
-              </div>
+              <SkeletonLoading type="vendors" count={6} />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {newVendors.length > 0 ? newVendors.map((vendor, index) => {
@@ -654,9 +654,11 @@ export default function Home() {
             )}
           </div>
         </section>
+      )}
 
 
-        {/* Popular Vendors */}
+      {/* Popular Vendors */}
+      {popularVendors.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-gradient-to-br from-gray-50 to-white" aria-labelledby="popular-vendors-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -689,74 +691,71 @@ export default function Home() {
             </motion.div>
 
             {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-500">Chargement des boutiques...</p>
-              </div>
+              <SkeletonLoading type="vendors" count={6} />
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                 {popularVendors.length > 0 ? popularVendors.map((vendor, index) => {
-                    const cardVariants = [
-                      // Variant 1: Premium with gold accent
-                      "rounded-2xl border-2 border-yellow-200/50",
-                      // Variant 2: Modern with angled border
-                      "rounded-xl border-r-4 border-r-yellow-500",
-                      // Variant 3: Classic with shadow and badge
-                      "rounded-lg shadow-xl",
-                      // Variant 4: Artistic with background pattern
-                      "rounded-3xl bg-gradient-to-br from-yellow-50/60 to-amber-50/40"
-                    ];
-                    // Calculate combined score for each vendor (rating + review count)
-                    const vendorScores = popularVendors.map(v => ({
-                      vendor: v,
-                      score: (v.averageRating || 0) + (v.reviewCount || 0)
-                    }));
-                    const maxScore = Math.max(...vendorScores.map(v => v.score));
-                    const variantIndex = index % cardVariants.length;
-                    const logoStyle = index % 4; // Different logo styles
-                    const badgeStyle = index % 3; // Different badge styles
-                    // Show "Top" badge for vendors with the highest combined score
-                    const vendorScore = (vendor.averageRating || 0) + (vendor.reviewCount || 0);
-                    const showTopBadge = vendorScore === maxScore;
+                  const cardVariants = [
+                    // Variant 1: Premium with gold accent
+                    "rounded-2xl border-2 border-yellow-200/50",
+                    // Variant 2: Modern with angled border
+                    "rounded-xl border-r-4 border-r-yellow-500",
+                    // Variant 3: Classic with shadow and badge
+                    "rounded-lg shadow-xl",
+                    // Variant 4: Artistic with background pattern
+                    "rounded-3xl bg-gradient-to-br from-yellow-50/60 to-amber-50/40"
+                  ];
+                  // Calculate combined score for each vendor (rating + review count)
+                  const vendorScores = popularVendors.map(v => ({
+                    vendor: v,
+                    score: (v.averageRating || 0) + (v.reviewCount || 0)
+                  }));
+                  const maxScore = Math.max(...vendorScores.map(v => v.score));
+                  const variantIndex = index % cardVariants.length;
+                  const logoStyle = index % 4; // Different logo styles
+                  const badgeStyle = index % 3; // Different badge styles
+                  // Show "Top" badge for vendors with the highest combined score
+                  const vendorScore = (vendor.averageRating || 0) + (vendor.reviewCount || 0);
+                  const showTopBadge = vendorScore === maxScore;
 
-                    return (
-                      <motion.article
-                        key={vendor._id || vendor.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: index * 0.05 }}
-                        className="group"
-                      >
-                        <Link href={`/vendor/${vendor.vendorSlug}`}>
-                          <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-yellow-400/50 shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer ${cardVariants[variantIndex]}`}>
-                            <div className="aspect-[4/3] relative bg-gray-50">
-                              <LazyImage
-                                src={vendor.coverImage || "https://placehold.co/400x300/000000/FFFFFF/png?text=Boutique"}
-                                alt={`Bannière ${vendor.businessName}`}
-                                fill
-                                priority={index < 6}
-                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                              />
-                              <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-gradient-to-bl from-yellow-500/20 via-transparent to-orange-500/20' : 'bg-gradient-to-t from-black/45 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                              {vendor.logo && (
-                                <div className={`absolute border-3 border-white overflow-hidden shadow-2xl bg-white ${logoStyle === 0 ? '-bottom-6 left-3 w-12 h-12 rounded-xl' : logoStyle === 1 ? '-bottom-5 right-3 w-10 h-10 rounded-full' : logoStyle === 2 ? 'top-3 right-3 w-14 h-14 rounded-2xl' : 'bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-4 border-yellow-400'}`}>
-                                  <LazyImage
-                                    src={vendor.logo}
-                                    alt={`Logo ${vendor.businessName}`}
-                                    fill
-                                    sizes="64px"
-                                    className="object-cover"
-                                  />
-                                </div>
-                              )}
-                              {showTopBadge && (
-                                <div className={`absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 ${badgeStyle === 0 ? 'rounded-full' : badgeStyle === 1 ? 'rounded-lg' : 'rounded-md'} text-xs font-bold shadow-sm flex items-center gap-1`}>
-                                  <Star className="w-3 h-3 fill-white" />
-                                  Top
-                                </div>
-                              )}
+                  return (
+                    <motion.article
+                      key={vendor._id || vendor.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: index * 0.05 }}
+                      className="group"
+                    >
+                      <Link href={`/vendor/${vendor.vendorSlug}`}>
+                        <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-yellow-400/50 shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer ${cardVariants[variantIndex]}`}>
+                          <div className="aspect-[4/3] relative bg-gray-50">
+                            <LazyImage
+                              src={vendor.coverImage || "https://placehold.co/400x300/000000/FFFFFF/png?text=Boutique"}
+                              alt={`Bannière ${vendor.businessName}`}
+                              fill
+                              priority={index < 6}
+                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-gradient-to-bl from-yellow-500/20 via-transparent to-orange-500/20' : 'bg-gradient-to-t from-black/45 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                            {vendor.logo && (
+                              <div className={`absolute border-3 border-white overflow-hidden shadow-2xl bg-white ${logoStyle === 0 ? '-bottom-6 left-3 w-12 h-12 rounded-xl' : logoStyle === 1 ? '-bottom-5 right-3 w-10 h-10 rounded-full' : logoStyle === 2 ? 'top-3 right-3 w-14 h-14 rounded-2xl' : 'bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-4 border-yellow-400'}`}>
+                                <LazyImage
+                                  src={vendor.logo}
+                                  alt={`Logo ${vendor.businessName}`}
+                                  fill
+                                  sizes="64px"
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+                            {showTopBadge && (
+                              <div className={`absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 ${badgeStyle === 0 ? 'rounded-full' : badgeStyle === 1 ? 'rounded-lg' : 'rounded-md'} text-xs font-bold shadow-sm flex items-center gap-1`}>
+                                <Star className="w-3 h-3 fill-white" />
+                                Top
+                              </div>
+                            )}
                           </div>
                           <CardContent className="pt-8 px-3 pb-3">
                             <div className="flex items-start justify-between mb-1">
@@ -790,62 +789,63 @@ export default function Home() {
             )}
           </div>
         </section>
+      )}
 
-        {/* How It Works - Interactive Guide */}
-        <InteractiveHowItWorksSection />
-
-
-        {/* CTA Section - Modern & Engaging */}
-        <section className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black"></div>
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-float"></div>
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
-          </div>
-
-          <div className="max-w-5xl mx-auto text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="space-y-8"
-            >
-
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white leading-tight">
-                Prêt à transformer votre <span className="gradient-text">expérience d&apos;achat</span> ?
-              </h2>
-
-              <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-                Rejoignez la grande famille d&apos;utilisateurs qui fait confiance à KOUMALE pour leurs achats et leurs ventes en ligne
-              </p>
-
-              <div className="flex flex-wrap justify-center gap-4 pt-4">
-                <Link
-                  href="/products"
-                  className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-orange-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:-translate-y-1"
-                >
-                  <ShoppingBag className="w-5 h-5" />
-                  Commencer à acheter
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  href="/auth/register-vendor"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-full shadow-2xl hover:shadow-white/50 transition-all duration-300 hover:-translate-y-1"
-                >
-                  <Store className="w-5 h-5" />
-                  Devenir vendeur
-                </Link>
-              </div>
+      {/* How It Works - Interactive Guide */}
+      <InteractiveHowItWorksSection />
 
 
-            </motion.div>
-          </div>
-        </section>
+      {/* CTA Section - Modern & Engaging */}
+      <section className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black"></div>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-float"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
+        </div>
 
-        {/* Chat Assistant */}
-        {/* <ChatClient /> */}
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
+          >
 
-      </main>
-    )
-  };
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white leading-tight">
+              Prêt à transformer votre <span className="gradient-text">expérience d&apos;achat</span> ?
+            </h2>
+
+            <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
+              Rejoignez la grande famille d&apos;utilisateurs qui fait confiance à KOUMALE pour leurs achats et leurs ventes en ligne
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-4 pt-4">
+              <Link
+                href="/products"
+                className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-orange-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:-translate-y-1"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                Commencer à acheter
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/auth/register-vendor"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-full shadow-2xl hover:shadow-white/50 transition-all duration-300 hover:-translate-y-1"
+              >
+                <Store className="w-5 h-5" />
+                Devenir vendeur
+              </Link>
+            </div>
+
+
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Chat Assistant */}
+      {/* <ChatClient /> */}
+
+    </main>
+  )
+};

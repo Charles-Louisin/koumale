@@ -94,7 +94,6 @@ export default function ContactPage() {
                     <option value="">Sélectionnez un sujet</option>
                     <option value="support">Support technique</option>
                     <option value="orders">Commandes</option>
-                    <option value="returns">Retours</option>
                     <option value="vendor">Devenir vendeur</option>
                     <option value="partnership">Partenariats</option>
                     <option value="other">Autre</option>
@@ -184,9 +183,7 @@ export default function ContactPage() {
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-1">Horaires d&apos;ouverture</h4>
                       <div className="text-gray-600 space-y-1">
-                        <p>Lundi - Vendredi: 9h00 - 18h00</p>
-                        <p>Samedi: 9h00 - 14h00</p>
-                        <p>Dimanche: Fermé</p>
+                        <p>Disponible 24h/24</p>
                       </div>
                     </div>
                   </div>

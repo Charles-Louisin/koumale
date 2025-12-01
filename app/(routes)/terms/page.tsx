@@ -22,8 +22,8 @@ export default function TermsPage() {
       title: "Obligations des utilisateurs",
       icon: <Users className="w-6 h-6" />,
       content: [
-        "Fournir des informations exactes et à jour lors de l&apos;inscription",
-        "Respecter les droits de propriété intellectuelle d&apos;autrui",
+        "Fournir des informations exactes et à jour lors de l'inscription",
+        "Respecter les droits de propriété intellectuelle d'autrui",
         "Ne pas utiliser la plateforme à des fins illégales ou frauduleuses",
         "Maintenir la confidentialité de vos identifiants de connexion",
         "Respecter les autres utilisateurs et ne pas harceler ou intimider"

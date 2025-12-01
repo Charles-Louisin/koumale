@@ -12,7 +12,7 @@ export default function PrivacyPage() {
       title: "Collecte des données",
       icon: <Database className="w-6 h-6" />,
       content: [
-        "Informations d&apos;identification (nom, email, téléphone)",
+        "Informations d'identification (nom, email, téléphone)",
         "Informations de livraison et facturation",
         "Historique des commandes et achats",
         "Données de navigation et préférences",
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         "Traitement et livraison des commandes",
         "Communication sur les commandes et services",
         "Amélioration de nos services et produits",
-        "Personnalisation de l&apos;expérience utilisateur",
+        "Personnalisation de l'expérience utilisateur",
         "Respect des obligations légales"
       ]
     },
@@ -56,15 +56,15 @@ export default function PrivacyPage() {
 
   const userRights = [
     {
-      title: "Droit d&apos;accès",
-      description: "Vous pouvez demander l&apos;accès à vos données personnelles à tout moment."
+      title: "Droit d'accès",
+      description: "Vous pouvez demander l'accès à vos données personnelles à tout moment."
     },
     {
       title: "Droit de rectification",
       description: "Vous pouvez demander la correction de vos données inexactes ou incomplètes."
     },
     {
-      title: "Droit à l&apos;effacement",
+      title: "Droit à l'effacement",
       description: "Vous pouvez demander la suppression de vos données dans certaines conditions."
     },
     {
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
       description: "Vous pouvez demander la transmission de vos données à un autre service."
     },
     {
-      title: "Droit d&apos;opposition",
+      title: "Droit d'opposition",
       description: "Vous pouvez vous opposer au traitement de vos données pour des motifs légitimes."
     },
     {

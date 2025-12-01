@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { LazyImage } from "@/app/components/ui/lazy-image";
+import { SkeletonLoading } from "@/app/components/ui/skeleton-loading";
 import { productsApi, ProductItem, API_BASE_URL } from "@/app/lib/api";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -200,14 +201,7 @@ export default function ProductsPage() {
 
         {/* Loading State */}
         {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <div className="inline-block w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-500">Chargement des produits...</p>
-          </motion.div>
+          <SkeletonLoading type="products" count={12} />
         )}
 
         {/* Error State */}
