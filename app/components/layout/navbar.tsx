@@ -5,7 +5,7 @@ import { authApi, authStorage, productsApi, vendorsApi, ProductItem, Vendor, API
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon, Baby, Car, Camera, Coffee, Dumbbell, Flower, Gift, Glasses, Hammer, Headphones, Laptop, Monitor, Music, Palette, Pill, Scissors, ShoppingBag, Sofa, Wrench, Truck, Watch, Wine, Zap } from "lucide-react";
+import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon, Baby, Car, Camera, Coffee, Dumbbell, Flower, Gift, Glasses, Hammer, Headphones, Laptop, Monitor, Music, Palette, Pill, Scissors, ShoppingBag, Sofa, Wrench, Truck, Watch, Wine, Zap, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function Navbar() {
@@ -851,6 +851,14 @@ export function Navbar() {
                       >
                         <LogInIcon/>
                         <span>Connexion</span>
+                      </Link>
+                      <Link
+                        href="/auth/register"
+                        className="flex items-center justify-center gap-4 px-5 py-4 text-base font-medium text-white bg-primary hover:bg-primary/90 rounded-xl transition-all duration-300 shadow-sm"
+                        onClick={() => { setIsMenuOpen(false); }}
+                      >
+                        <UserPlus/>
+                        <span>S&apos;inscrire</span>
                       </Link>
                     </div>
                   )}
