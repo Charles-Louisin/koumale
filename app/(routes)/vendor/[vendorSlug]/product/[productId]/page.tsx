@@ -277,7 +277,7 @@ export default function ProductPage({
       images: product.images?.join(", ") || "Aucune image"
     };
 
-    return `Bonjour ! Je suis intéressé par ce produit :\n\n📦 **${productInfo.name}**\n💰 Prix: ${productInfo.price}\n📝 Description: ${productInfo.description}\n🔍 Caractéristiques: ${productInfo.attributes}\n🖼️ Images: ${productInfo.images}\n\nPouvez-vous me donner plus d'informations ?`;
+    return `Bonjour ! Je suis intéressé par ce produit :\n\n📦 **${productInfo.name}**\n💰 Prix: ${productInfo.price}\n📝 Description: ${productInfo.description}\n🔍 Caractéristiques: ${productInfo.attributes}\n🖼️ Images: ${productInfo.images}\n\nPouvez-vous me donner plus d'informations afin de commander ?`;
   }, [product, formattedPrice, attributeEntries]);
 
   // Contact options

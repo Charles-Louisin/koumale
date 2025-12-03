@@ -30,7 +30,7 @@ export default function AuthCallbackPage() {
       const payload = JSON.parse(atob(parts[1]));
       const user = payload.user || {};
 
-      success(`Bienvenue ${user.firstName || ""} ${user.lastName || ""}`.trim());
+      success(`Bienvenue ! Connexion réussi...`);
 
       setTimeout(() => {
         if (user.role === "vendor") {

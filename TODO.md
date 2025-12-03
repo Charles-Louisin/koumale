@@ -1,15 +1,16 @@
-# Fix Google OAuth Production Redirect Issue
+# TODO - Correction Google Login Toast
 
-## Problem
-In production, Google OAuth redirects are going to `http://localhost:3000/auth/callback?token=...` instead of the production domain because the `FRONTEND_URL` environment variable is not set correctly.
+## Description
+Corriger l'affichage du nom et prénom dans le toast après connexion Google. Actuellement, seul "Bienvenue..." s'affiche au lieu de "Bienvenue [Prénom] [Nom]".
 
-## Solution
-Modify the backend auth route to dynamically determine the correct frontend URL for redirects.
+## Problème
+- Le token JWT ne contient que l'ID utilisateur
+- AuthCallbackPage.tsx essaie d'extraire firstName/lastName du token (qui n'y sont pas)
+- Solution : utiliser authApi.getMe() pour récupérer les infos utilisateur après avoir défini le token
 
-## Tasks
-- [ ] Update backend/src/routes/auth.ts to use dynamic frontend URL detection
-- [ ] Test the OAuth flow in development
-- [ ] Ensure production environment variables are properly configured
+## Tâches
+- [ ] Modifier AuthCallbackPage.tsx pour utiliser authApi.getMe() au lieu d'extraire du token
+- [ ] Tester la connexion Google pour vérifier que le toast affiche correctement le nom
 
-## Files to Modify
-- backend/src/routes/auth.ts (Google OAuth callback redirect logic)
+## État
+En cours
