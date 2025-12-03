@@ -581,7 +581,7 @@ export default function RegisterVendorPage() {
                         Veillez fournir de vrais et valables documents.
                       </p>
                       <p className="text-sm text-gray-600">
-                        Documents requis : pièce d&apos;identité (recto-verso), justificatif d&apos;activité commerciale, etc.
+                        Documents requis : pièce d&apos;identité (CNI / Récépissé) ou autre document confirmant votre identité (Acte de naissance etc...).
                       </p>
                     </div>
                     <div className="flex items-start space-x-2 pt-4">
