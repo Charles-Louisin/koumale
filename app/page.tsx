@@ -318,7 +318,6 @@ export default function Home() {
 
 
       {/* Trending Products - Bento Grid Style */}
-      {trendingProducts.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-gradient-to-br from-gray-50 to-white" aria-labelledby="trending-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -438,13 +437,11 @@ export default function Home() {
             )}
           </div>
         </section>
-      )}
 
       {/* Why Choose KOUMALE - Interactive Learning Experience */}
       <InteractiveWhySection />
 
       {/* New Products - Horizontal Scroll */}
-      {newProducts.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-white" aria-labelledby="new-products-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -545,7 +542,6 @@ export default function Home() {
             )}
           </div>
         </section>
-      )}
 
       {/* New Vendors - Modern Cards */}
       {newVendors.length > 0 && (
@@ -658,7 +654,6 @@ export default function Home() {
 
 
       {/* Popular Vendors */}
-      {popularVendors.length > 0 && (
         <section className="py-16 md:py-24 px-4 md:px-6 bg-gradient-to-br from-gray-50 to-white" aria-labelledby="popular-vendors-heading">
           <div className="max-w-7xl mx-auto">
             <motion.div
@@ -789,7 +784,6 @@ export default function Home() {
             )}
           </div>
         </section>
-      )}
 
       {/* How It Works - Interactive Guide */}
       <InteractiveHowItWorksSection />

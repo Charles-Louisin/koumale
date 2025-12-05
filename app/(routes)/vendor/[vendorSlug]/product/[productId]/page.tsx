@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React, { use, useEffect, useMemo, useState } from "react";
@@ -171,23 +169,22 @@ export default function ProductPage({
       }
     };
 
-    
 
 
-  // ...
+    // ...
 
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await authApi.getMe();
-      if (!cancelled && res.success && res.data?.user) {
-        setCurrentUser({ firstName: res.data.user.firstName, lastName: res.data.user.lastName });
-      } else {
-        setCurrentUser(null);
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await authApi.getMe();
+        if (!cancelled && res.success && res.data?.user) {
+          setCurrentUser({ firstName: res.data.user.firstName, lastName: res.data.user.lastName });
+        } else {
+          setCurrentUser(null);
+        }
+      } catch {
+        if (!cancelled) setCurrentUser(null);
       }
-    } catch {
-      if (!cancelled) setCurrentUser(null);
-    }
-  };
+    };
 
     fetchData();
     fetchReviews();
@@ -269,16 +266,24 @@ export default function ProductPage({
   const generateMessage = React.useMemo(() => {
     if (!product) return "Bonjour, je suis intéressé par vos produits.";
 
+    // Determine price to display (promotional if available)
+    const displayPrice = product.promotionalPrice && product.promotionalPrice > 0
+      ? new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: "XOF"
+      }).format(product.promotionalPrice)
+      : formattedPrice;
+
     const productInfo = {
       name: product.name,
-      price: formattedPrice,
+      price: displayPrice,
       description: product.description,
       attributes: attributeEntries.map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`).join(", "),
-      images: product.images?.join(", ") || "Aucune image"
+      link: `${window.location.origin}/vendor/${vendorSlug}/product/${productId}`
     };
 
-    return `Bonjour ! Je suis intéressé par ce produit :\n\n📦 **${productInfo.name}**\n💰 Prix: ${productInfo.price}\n📝 Description: ${productInfo.description}\n🔍 Caractéristiques: ${productInfo.attributes}\n🖼️ Images: ${productInfo.images}\n\nPouvez-vous me donner plus d'informations afin de commander ?`;
-  }, [product, formattedPrice, attributeEntries]);
+    return `Bonjour ! Je suis intéressé par ce produit :\n\n📦 **${productInfo.name}**\n💰 Prix: ${productInfo.price}\n📝 Description: ${productInfo.description}\n🔍 Caractéristiques: ${productInfo.attributes}\n🔗 Lien du produit: ${productInfo.link}\n\nPouvez-vous me donner plus d'informations afin de commander ?`;
+  }, [product, formattedPrice, attributeEntries, vendorSlug, productId]);
 
   // Contact options
   const contactOptions = React.useMemo(() => {
@@ -404,9 +409,8 @@ export default function ProductPage({
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${
-                      activeImage === image ? "border-primary shadow-lg" : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all hover:scale-105 ${activeImage === image ? "border-primary shadow-lg" : "border-gray-200 hover:border-gray-300"
+                      }`}
                     onClick={() => {
                       setActiveImage(image);
                     }}
@@ -430,20 +434,21 @@ export default function ProductPage({
           >
             {/* Vendor Info */}
             <div className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-gray-200">
-                <Link
-                  href={`/vendor/${vendorSlug}`}
-                  className="font-semibold flex items-center justify-center gap-3 text-gray-800 hover:text-primary transition-colors"
-                >
-              <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100">
-                <div
-                  className="h-full w-full bg-cover bg-center"
-                  style={{ backgroundImage: `url(${vendor?.logo ?? FALLBACK_THUMB})` }}
-                />
-              </div>
-              <div className="flex">
-                  {vendor?.businessName ?? product.vendor?.businessName ?? "Boutique"}
-              </div>
-                </Link>
+              <Link
+                href={`/vendor/${vendorSlug}`}
+                className="font-semibold flex items-center justify-center gap-3 text-gray-800 hover:text-primary transition-colors"
+              >
+                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-100">
+                  <div
+                    className="h-full w-full bg-cover bg-center"
+                    style={{ backgroundImage: `url(${vendor?.logo ?? FALLBACK_THUMB})` }}>
+                  </div>
+
+                  <div className="flex">
+                    {vendor?.businessName ?? product.vendor?.businessName ?? "Boutique"}
+                  </div>
+                </div>
+              </Link>
             </div>
 
             {/* Product Title & Price */}
@@ -476,7 +481,7 @@ export default function ProductPage({
                   </span>
                 </motion.div>
               )}
-              
+
 
               {product.promotionalPrice ? (
                 <motion.div

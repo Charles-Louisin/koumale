@@ -4,11 +4,14 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "./navbar";
 import { Footer } from "./footer";
+import { ToastContainer } from "../ui/toast";
+import { useToast } from "@/app/hooks/use-toast";
 
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAuthRoute = pathname?.startsWith("/auth");
   const isDashboardRoute = pathname?.startsWith("/dashboard");
+  const { toasts, removeToast } = useToast();
 
   return (
     <>

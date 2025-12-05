@@ -15,7 +15,7 @@ import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { toasts, success, error, removeToast } = useToast();
+  const { toasts, success, error, info, removeToast } = useToast();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -27,6 +27,33 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string; role?: "client" | "vendor" | "superAdmin"; status?: "pending" | "approved" } | null>(null);
+
+  React.useEffect(() => {
+    const token = authStorage.getToken();
+    if (!token) return;
+    authApi
+      .getMe()
+      .then((res) => {
+        if (res.success && res.user) {
+          setCurrentUser({
+            firstName: res.user.firstName,
+            lastName: res.user.lastName,
+            role: res.user.role,
+            status: res.user.status,
+          });
+        }
+      })
+      .catch(() => { });
+  }, []);
+
+  const handleCreateShopClick = (e: React.MouseEvent) => {
+    if (!currentUser) {
+      e.preventDefault();
+      info("Veuillez vous inscrire avant de créer votre boutique.");
+    }
+  };
 
   const emailError = useMemo(() => {
     if (!touched.email) return "";
@@ -112,7 +139,7 @@ export default function RegisterPage() {
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] px-0 md:px-4 py-8">
         <div className="w-full md:max-w-md">
           <div className="bg-white p-8 rounded-lg">
-            
+
 
             {/* Titre */}
             <div className="text-center mb-8">
@@ -153,7 +180,7 @@ export default function RegisterPage() {
               </Button>
             </div>
 
-           <div className="relative mb-6">
+            <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
@@ -303,7 +330,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="text-sm text-gray-600">
                   Vous êtes un vendeur?{" "}
-                  <Link href="/auth/register-vendor" className="text-primary font-semibold hover:underline transition-colors">
+                  <Link href="/auth/register-vendor" onClick={handleCreateShopClick} className="text-primary font-semibold hover:underline transition-colors">
                     Créer une boutique
                   </Link>
                 </div>

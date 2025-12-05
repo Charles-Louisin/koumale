@@ -3,9 +3,41 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { authApi, authStorage } from "@/app/lib/api";
+import { useToast } from "@/app/hooks/use-toast";
+import { ToastContainer } from "../ui/toast";
 
 export function Footer() {
+  const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string; role?: "client" | "vendor" | "superAdmin"; status?: "pending" | "approved" } | null>(null);
+  const { toasts, removeToast, info } = useToast();
+
+  React.useEffect(() => {
+    const token = authStorage.getToken();
+    if (!token) return;
+    authApi
+      .getMe()
+      .then((res) => {
+        if (res.success && res.user) {
+          setCurrentUser({
+            firstName: res.user.firstName,
+            lastName: res.user.lastName,
+            role: res.user.role,
+            status: res.user.status,
+          });
+        }
+      })
+      .catch(() => { });
+  }, []);
+
+  const handleCreateShopClick = (e: React.MouseEvent) => {
+    if (!currentUser) {
+      e.preventDefault();
+      info("Veuillez vous inscrire avant de créer votre boutique.");
+    }
+  };
+
   return (
+    <>
     <footer className="bg-neutral-50 text-neutral-800 mt-auto">
       <div className="max-w-6xl mx-auto px-6 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
@@ -97,6 +129,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/auth/register-vendor"
+                  onClick={handleCreateShopClick}
                   className="text-sm text-neutral-600 hover:text-primary transition-colors flex items-center group"
                 >
                   <span className="w-1.5 h-1.5 bg-primary rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
@@ -184,5 +217,7 @@ export function Footer() {
         </div>
       </div>
     </footer>
+    <ToastContainer toasts={toasts} onClose={removeToast} />
+    </>
   );
 }

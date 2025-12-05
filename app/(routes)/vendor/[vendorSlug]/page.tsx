@@ -432,7 +432,7 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
               >
                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">Aucun produit trouvé</h3>
-                <p className="text-gray-600">Cette catégorie ne contient pas encore de produits.</p>
+                <p className="text-gray-600">Cette boutique ne contient pas encore de produits.</p>
               </motion.div>
             )}
           </motion.div>

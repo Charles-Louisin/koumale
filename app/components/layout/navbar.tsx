@@ -7,6 +7,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon, Baby, Car, Camera, Coffee, Dumbbell, Flower, Gift, Glasses, Hammer, Headphones, Laptop, Monitor, Music, Palette, Pill, Scissors, ShoppingBag, Sofa, Wrench, Truck, Watch, Wine, Zap, UserPlus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useToast } from "@/app/hooks/use-toast";
+import { ToastContainer } from "@/app/components/ui/toast";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -17,6 +19,7 @@ export function Navbar() {
   const pathname = usePathname();
   const [isAtTop, setIsAtTop] = React.useState(true);
   const [showSearchOnTop, setShowSearchOnTop] = React.useState(false);
+  const { toasts, removeToast, info } = useToast();
 
   const [showResults, setShowResults] = React.useState(false);
   const [isSearching, setIsSearching] = React.useState(false);
@@ -25,6 +28,7 @@ export function Navbar() {
   const searchRef = React.useRef<HTMLDivElement | null>(null);
   const searchBarRef = React.useRef<HTMLInputElement | null>(null);
   const debounceRef = React.useRef<number | undefined>(undefined);
+  const [windowWidth, setWindowWidth] = React.useState(0);
 
   const handleSetSearchQuery = React.useCallback((value: string) => setSearchQuery(value), []);
   const handleSetSearchType = React.useCallback((type: "all" | "products" | "vendors") => setSearchType(type), []);
@@ -52,6 +56,13 @@ export function Navbar() {
         }
       })
       .catch(() => { });
+  }, []);
+
+  React.useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Cleanup body overflow on unmount
@@ -122,6 +133,13 @@ export function Navbar() {
     authStorage.removeToken();
     setCurrentUser(null);
     router.push("/");
+  };
+
+  const handleCreateShopClick = (e: React.MouseEvent) => {
+    if (!currentUser) {
+      e.preventDefault();
+      info("Veuillez vous inscrire avant de créer votre boutique.");
+    }
   };
 
   const toggleMenu = () => {
@@ -315,10 +333,10 @@ export function Navbar() {
             {/* Logo */}
             <div className="flex items-center gap-1">
               <Link href="/" className="flex items-center gap-1">
-                <div className="relative w-8 h-8 md:w-10 md:h-10">
+                <div className="relative w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-10 lg:h-10">
                   <Image src="/images/logo.png" alt="Logo" fill className="object-contain rounded-md" priority />
                 </div>
-                <span className="text-lg md:text-xl font-semibold tracking-tight leading-none">KOUMALE</span>
+                <span className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold tracking-tight leading-none">KOUMALE</span>
               </Link>
             </div>
 
@@ -333,7 +351,7 @@ export function Navbar() {
                   transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
                 >
                   <div ref={showSearchOnTop ? searchRef : undefined}>
-                    <div className="flex items-center gap-3 px-4 py-3 rounded-full border border-gray-200 shadow-sm bg-white">
+                    <div className="flex items-center gap-1 sm:gap-2 md:gap-3 px-2 py-1 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-full border border-gray-200 shadow-sm bg-white">
                       <div className="flex bg-gray-100 rounded-full p-1 relative">
                         <motion.div
                           layoutId="search-filter-indicator"
@@ -370,7 +388,7 @@ export function Navbar() {
                             setSearchQuery(e.target.value);
                             setShowResults(true);
                           }}
-                          className="w-full text-base md:text-lg outline-none bg-transparent placeholder-gray-400"
+                          className="w-full text-sm sm:text-base md:text-lg outline-none bg-transparent placeholder-gray-400"
                         />
                       </div>
                       {isSearching ? (
@@ -483,7 +501,7 @@ export function Navbar() {
                   Boutiques
                 </Link>
                 {currentUser && (currentUser.role === "superAdmin" || (currentUser.role === "vendor" && currentUser.status === "approved")) && (
-                  <Link href={currentUser.role === "superAdmin" ? "/dashboard/admin" : "/dashboard/vendor"} className="px-4 py-2 text-sm md:ml-5 font-medium text-white bg-primary hover:opacity-90 rounded-lg transition shadow-sm">
+                  <Link href={currentUser.role === "superAdmin" ? "/dashboard/admin" : "/dashboard/vendor"} className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-sm md:ml-5 font-medium text-white bg-primary hover:opacity-90 rounded-lg transition shadow-sm">
                     Tableau de bord
                   </Link>
                 )}
@@ -496,9 +514,9 @@ export function Navbar() {
             <div className="hidden lg:flex items-center gap-3 ml-4">
               <>
                 {(!currentUser || currentUser.role === "client") && (
-                  <Link href="/auth/register-vendor" className="ml-4 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
+                  <button onClick={handleCreateShopClick} className="ml-4 px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
                     Créer ma boutique
-                  </Link>
+                  </button>
                 )}
 
                 {currentUser ? (
@@ -533,21 +551,25 @@ export function Navbar() {
             </div>
 
             {/* Mobile: Search button or Menu Button */}
-            <div className="lg:hidden flex items-center gap-2">
+            <div className="lg:hidden flex items-center gap-1">
 
-              {(!currentUser || currentUser.role === "client") && (
-                <Link href="/auth/register-vendor" className="ml-4 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
-                  Créer ma boutique
+              {currentUser && (currentUser.role === "superAdmin" || (currentUser.role === "vendor" && currentUser.status === "approved")) ? (
+                <Link href={currentUser.role === "superAdmin" ? "/dashboard/admin" : "/dashboard/vendor"} className="ml-2 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
+                  Tableau de bord
                 </Link>
+              ) : (
+                <button onClick={handleCreateShopClick} className="ml-2 px-2 py-1.5 sm:px-4 sm:py-2 text-[11px] font-medium text-white bg-primary rounded-2xl transition shadow-sm">
+                  Créer ma boutique
+                </button>
               )}
 
               <button onClick={toggleMenu} className="p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition" aria-label="Toggle menu">
                 {isMenuOpen ? (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 ) : (
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )}
@@ -568,8 +590,8 @@ export function Navbar() {
                   transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
                 >
                   <div ref={!showSearchOnTop ? searchRef : undefined}>
-                    <div className="flex items-center gap-3 px-4 py-3 rounded-full border border-gray-200 shadow-sm bg-white">
-                      <div className="flex bg-gray-100 rounded-full p-1 relative">
+                    <div className={`flex items-center gap-1 sm:gap-2 md:gap-3 px-2 py-1 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-full border border-gray-200 shadow-sm bg-white ${windowWidth <= 400 ? 'py-3' : ''}`}>
+                      <div className={`${windowWidth > 400 ? 'flex' : 'hidden'} bg-gray-100 rounded-full p-1 relative`}>
                         <motion.div
                           layoutId="search-filter-indicator"
                           className="absolute bg-white shadow rounded-full"
@@ -605,7 +627,7 @@ export function Navbar() {
                             setSearchQuery(e.target.value);
                             setShowResults(true);
                           }}
-                          className="w-full text-base md:text-lg outline-none bg-transparent placeholder-gray-400"
+                          className="w-full text-sm sm:text-base md:text-lg outline-none bg-transparent placeholder-gray-400"
                         />
                       </div>
                       {isSearching ? (
@@ -849,7 +871,7 @@ export function Navbar() {
                         className="flex items-center justify-center gap-4 px-5 py-4 text-base font-medium text-white bg-primary hover:bg-primary/90 rounded-xl transition-all duration-300 shadow-sm"
                         onClick={() => { setIsMenuOpen(false); }}
                       >
-                        <LogInIcon/>
+                        <LogInIcon />
                         <span>Connexion</span>
                       </Link>
                       <Link
@@ -857,7 +879,7 @@ export function Navbar() {
                         className="flex items-center justify-center gap-4 px-5 py-4 text-base font-medium text-white bg-primary hover:bg-primary/90 rounded-xl transition-all duration-300 shadow-sm"
                         onClick={() => { setIsMenuOpen(false); }}
                       >
-                        <UserPlus/>
+                        <UserPlus />
                         <span>S&apos;inscrire</span>
                       </Link>
                     </div>
@@ -868,6 +890,7 @@ export function Navbar() {
           </div>
         )}
       </header>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );
 }
