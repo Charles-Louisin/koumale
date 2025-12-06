@@ -30,6 +30,7 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [categories, setCategories] = useState<string[]>([]);
+  const [windowWidth, setWindowWidth] = React.useState(0);
 
   // Advanced filters state
   const [filters, setFilters] = useState<{
@@ -66,6 +67,13 @@ export default function ProductsPage() {
 
     fetchCategories();
   }, []);
+
+  React.useEffect(() => {
+      const handleResize = () => setWindowWidth(window.innerWidth);
+      handleResize();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
   const selectedCategoryFromUrl = React.useMemo(() => {
     const categoryParam = searchParams.get("category");
@@ -227,7 +235,7 @@ export default function ProductsPage() {
                 transition={{ duration: 0.6 }}
                 className={
                   viewMode === "grid"
-                    ? "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
                     : "space-y-4"
                 }
               >

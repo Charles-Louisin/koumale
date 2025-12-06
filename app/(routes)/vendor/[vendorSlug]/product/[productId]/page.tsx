@@ -444,7 +444,7 @@ export default function ProductPage({
                     style={{ backgroundImage: `url(${vendor?.logo ?? FALLBACK_THUMB})` }}>
                   </div>
 
-                  <div className="flex">
+                  <div className="flex text-gray-800">
                     {vendor?.businessName ?? product.vendor?.businessName ?? "Boutique"}
                   </div>
                 </div>

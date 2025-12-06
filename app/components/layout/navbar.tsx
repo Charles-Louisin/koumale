@@ -333,10 +333,10 @@ export function Navbar() {
             {/* Logo */}
             <div className="flex items-center gap-1">
               <Link href="/" className="flex items-center gap-1">
-                <div className="relative w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-10 lg:h-10">
+                <div className="relative w-7 h-7 sm:w-8 sm:h-8 md:w-8 md:h-8 lg:w-10 lg:h-10">
                   <Image src="/images/logo.png" alt="Logo" fill className="object-contain rounded-md" priority />
                 </div>
-                <span className="text-xs sm:text-sm md:text-lg lg:text-xl font-semibold tracking-tight leading-none">KOUMALE</span>
+                <span className="text-sm sm:text-sm md:text-lg lg:text-xl font-semibold tracking-tight leading-none">KOUMALE</span>
               </Link>
             </div>
 
@@ -558,18 +558,18 @@ export function Navbar() {
                   Tableau de bord
                 </Link>
               ) : (
-                <button onClick={handleCreateShopClick} className="ml-2 px-2 py-1.5 sm:px-4 sm:py-2 text-[11px] font-medium text-white bg-primary rounded-2xl transition shadow-sm">
+                <button onClick={handleCreateShopClick} className="ml-2 px-2 py-1.5 sm:px-4 sm:py-2 md:text-[11px] text-[11px] font-medium text-white bg-primary rounded-lg transition shadow-sm">
                   Créer ma boutique
                 </button>
               )}
 
               <button onClick={toggleMenu} className="p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition" aria-label="Toggle menu">
                 {isMenuOpen ? (
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 ) : (
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-6 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 )}
@@ -590,7 +590,7 @@ export function Navbar() {
                   transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
                 >
                   <div ref={!showSearchOnTop ? searchRef : undefined}>
-                    <div className={`flex items-center gap-1 sm:gap-2 md:gap-3 px-2 py-1 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-full border border-gray-200 shadow-sm bg-white ${windowWidth <= 400 ? 'py-3' : ''}`}>
+                    <div className={`flex items-center gap-1 sm:gap-2 md:gap-3 px-2 py-3 sm:px-3 sm:py-2 md:px-4 md:py-3 rounded-full border border-gray-200 shadow-sm bg-white ${windowWidth <= 400 ? 'py-4' : ''}`}>
                       <div className={`${windowWidth > 400 ? 'flex' : 'hidden'} bg-gray-100 rounded-full p-1 relative`}>
                         <motion.div
                           layoutId="search-filter-indicator"
@@ -736,7 +736,7 @@ export function Navbar() {
               >
                 <div className="max-w-6xl mx-auto">
                   <div className="text-center mb-3 mt-2 md:mb-4 md:mt-2">
-                    <p className="text-sm text-gray-600">Trouvez facilement ce dont vous avez besoin par categorie</p>
+                    <p className={`${windowWidth < 400 ? 'text-[11px]' : 'text-sm'} text-gray-600`}>Trouvez facilement ce dont vous avez besoin par categorie</p>
                   </div>
 
                   <div className="overflow-x-auto scrollbar-hide">
@@ -745,12 +745,12 @@ export function Navbar() {
                         <Link
                           key={category.slug}
                           href={`/products?category=${category.slug}`}
-                          className="group bg-white p-4 rounded-xl shadow-lg transition transform hover:-translate-y-1 flex flex-col items-center text-center shrink-0 h-fit  min-w-[120px]"
+                          className={`${windowWidth < 400 ? 'p-1' : 'p-4'} group bg-white rounded-xl shadow-lg transition transform hover:-translate-y-1 flex flex-col items-center text-center shrink-0 h-fit  min-w-[120px]`}
                         >
                           <div className="mb-2 group-hover:scale-105 transition-transform">
-                            <category.Icon className="w-8 h-8 text-primary" />
+                            <category.Icon className={`${windowWidth < 400 ? 'w-6 h-6' : 'w-8 h-8'} text-primary`} />
                           </div>
-                          <h3 className="font-medium text-sm text-gray-800 group-hover:text-primary">
+                          <h3 className={`${windowWidth < 400 ? 'text-xs' : 'text-sm'} font-medium text-gray-800 group-hover:text-primary`}>
                             {category.name}
                           </h3>
                         </Link>

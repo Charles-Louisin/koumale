@@ -133,6 +133,14 @@ export default function InteractiveWhySection() {
   const [currentFeature, setCurrentFeature] = React.useState(0);
   const [showEndQuestion, setShowEndQuestion] = React.useState(false);
   const [hasUnderstood, setHasUnderstood] = React.useState<boolean | null>(null);
+  const [windowWidth, setWindowWidth] = React.useState(0);
+
+  React.useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const feature = features[currentFeature];
   const Icon = feature.icon;
@@ -188,21 +196,21 @@ export default function InteractiveWhySection() {
   };
 
   return (
-    <section className="py-12 md:py-20 px-4 md:px-6 bg-white relative overflow-hidden">
+    <section className={`${windowWidth <= 440 ? 'py-8 md:py-16 px-3 md:px-4' : 'py-12 md:py-20 px-4 md:px-6'} bg-white relative overflow-hidden`}>
       <div className="absolute inset-0 mesh-gradient pointer-events-none"></div>
-      
-      <div className="max-w-4xl mx-auto relative z-10">
+
+      <div className={`${windowWidth <= 440 ? 'max-w-3xl' : 'max-w-4xl'} mx-auto relative z-10`}>
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-8"
+          className={`${windowWidth <= 440 ? 'text-center mb-6' : 'text-center mb-8'}`}
         >
-          <h2 className="text-3xl md:text-4xl font-display font-bold mb-3">
+          <h2 className={`${windowWidth <= 440 ? 'text-xl md:text-3xl' : 'text-3xl md:text-4xl'} font-display font-bold mb-3`}>
             Découvrez <span className="gradient-text">KOUMALE</span>
           </h2>
-          <p className="text-base text-gray-600">
+          <p className={`${windowWidth <= 440 ? 'text-sm' : 'text-base'} text-gray-600`}>
             Prenez quelques minutes pour comprendre comment nous pouvons vous aider
           </p>
         </motion.div>
@@ -282,11 +290,11 @@ export default function InteractiveWhySection() {
                 }
               }
             }}
-            className="bg-white rounded-2xl p-6 md:p-8 shadow-xl border border-gray-100 cursor-grab active:cursor-grabbing"
+            className={`bg-white rounded-2xl ${windowWidth <= 440 ? 'p-4 md:p-6' : 'p-6 md:p-8'} shadow-xl border border-gray-100 cursor-grab active:cursor-grabbing`}
           >
             {/* Icon */}
-            <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-4 mx-auto`}>
-              <Icon className="w-8 h-8 text-white" />
+            <div className={`${windowWidth <= 440 ? 'w-12 h-12 mb-3' : 'w-16 h-16 mb-4'} bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mx-auto`}>
+              <Icon className={`${windowWidth <= 440 ? 'w-6 h-6' : 'w-8 h-8'} text-white`} />
             </div>
 
             {/* Step Content */}

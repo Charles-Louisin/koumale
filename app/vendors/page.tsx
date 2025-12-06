@@ -150,12 +150,12 @@ export default function VendorsPage() {
                             )}
                           </div>
                           <CardContent className="p-3">
-                            <div className="flex items-start justify-between mb-1">
+                            <div className="flex flex-col items-start justify-between mb-1">
                               <h3 className={`font-semibold text-sm group-hover:text-green-700 transition-colors leading-tight truncate ${variantIndex === 3 ? 'text-sm' : 'text-sm'}`}>
                                 {vendor.businessName}
                               </h3>
                               {vendor.averageRating && vendor.averageRating > 0 && (
-                                <div className="flex items-center gap-1 text-yellow-400 ml-1">
+                                <div className="flex items-center gap-1 text-yellow-400">
                                   <Star className="w-3 h-3 fill-current" />
                                   <span className="text-xs font-medium text-gray-700">
                                     {vendor.averageRating.toFixed(1)} ({vendor.reviewCount} avis)
