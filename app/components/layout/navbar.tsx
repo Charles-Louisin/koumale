@@ -139,8 +139,11 @@ export function Navbar() {
     if (!currentUser) {
       e.preventDefault();
       info("Veuillez vous inscrire avant de créer votre boutique.");
+    } else if (currentUser.role === "vendor" && currentUser.status === "pending") {
+      e.preventDefault();
+      info("Votre boutique est en cours d'approbation. Vous serez notifié.");
     } else {
-      // User is logged in, navigate to register-vendor page
+      // User is logged in and not a pending vendor, navigate to register-vendor page
       router.push("/auth/register-vendor");
     }
   };
@@ -516,7 +519,7 @@ export function Navbar() {
             {/* Auth / User - Desktop */}
             <div className="hidden lg:flex items-center gap-3 ml-4">
               <>
-                {(!currentUser || currentUser.role === "client") && (
+                {(!currentUser || currentUser.role === "client" || (currentUser.role === "vendor" && currentUser.status === "pending")) && (
                   <button onClick={handleCreateShopClick} className="ml-4 px-3 py-1.5 sm:px-4 sm:py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
                     Créer ma boutique
                   </button>
@@ -560,11 +563,11 @@ export function Navbar() {
                 <Link href={currentUser.role === "superAdmin" ? "/dashboard/admin" : "/dashboard/vendor"} className="ml-2 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
                   Tableau de bord
                 </Link>
-              ) : (
+              ) : (!currentUser || currentUser.role === "client" || (currentUser.role === "vendor" && currentUser.status === "pending")) ? (
                 <button onClick={handleCreateShopClick} className="ml-2 px-2 py-1.5 sm:px-4 sm:py-2 md:text-[11px] text-[11px] font-medium text-white bg-primary rounded-lg transition shadow-sm">
                   Créer ma boutique
                 </button>
-              )}
+              ) : null}
 
               <button onClick={toggleMenu} className="p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition" aria-label="Toggle menu">
                 {isMenuOpen ? (
