@@ -530,8 +530,8 @@ export default function AdminApprovalsPage() {
                         // Ouvrir Email
                         if (vendor.user?.email) {
                           const subject = contactModal.action === 'approve'
-                            ? 'Approbation de votre demande - Buy\'s Me Ways'
-                            : 'Rejet de votre demande - Buy\'s Me Ways';
+                            ? 'Approbation de votre demande - KOUMALE'
+                            : 'Rejet de votre demande - KOUMALE';
 
                           const emailUrl = `mailto:${vendor.user.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
                           window.open(emailUrl, '_blank');
