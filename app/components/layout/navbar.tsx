@@ -139,6 +139,9 @@ export function Navbar() {
     if (!currentUser) {
       e.preventDefault();
       info("Veuillez vous inscrire avant de créer votre boutique.");
+    } else {
+      // User is logged in, navigate to register-vendor page
+      router.push("/auth/register-vendor");
     }
   };
 
