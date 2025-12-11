@@ -141,7 +141,7 @@ export function Navbar() {
       info("Veuillez vous inscrire avant de créer votre boutique.");
     } else if (currentUser.role === "vendor" && currentUser.status === "pending") {
       e.preventDefault();
-      info("Votre boutique est en cours d'approbation. Vous serez notifié.");
+      info("Votre boutique est en cours d'approbation. Vous serez notifié une fois le processus terminé.");
     } else {
       // User is logged in and not a pending vendor, navigate to register-vendor page
       router.push("/auth/register-vendor");
