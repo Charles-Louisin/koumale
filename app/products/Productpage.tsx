@@ -97,7 +97,7 @@ export default function ProductsPage() {
         const category = selectedCategory === "Toutes" ? undefined : selectedCategory;
         const response = await productsApi.list({
           page: currentPage,
-          limit: 12,
+          limit: 36,
           category,
           minPrice: filters.minPrice,
           maxPrice: filters.maxPrice,
@@ -209,7 +209,7 @@ export default function ProductsPage() {
 
         {/* Loading State */}
         {loading && (
-          <SkeletonLoading type="products" count={12} />
+          <SkeletonLoading type="products" count={6} />
         )}
 
         {/* Error State */}

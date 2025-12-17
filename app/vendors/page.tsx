@@ -32,7 +32,7 @@ export default function VendorsPage() {
 
         const response = await vendorsApi.list({
           page: currentPage,
-          limit: 12,
+          limit: 24,
           ...filters,
         });
 
@@ -75,7 +75,7 @@ export default function VendorsPage() {
 
         {/* Loading State */}
         {loading && (
-          <SkeletonLoading type="vendors" count={12} />
+          <SkeletonLoading type="vendors" count={6} />
         )}
 
         {/* Error State */}
