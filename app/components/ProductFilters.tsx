@@ -213,15 +213,15 @@ export default function ProductFilters({ onFiltersChange, initialFilters = {} }:
 
                     {/* Active Filters Display */}
                     <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm mb-4">
-                                <input
-                                    type="checkbox"
-                                    checked={isOnPromotion}
-                                    onChange={(e) => setIsOnPromotion(e.target.checked)}
-                                    className="rounded border-gray-300 text-primary focus:ring-primary"
-                                />
-                                En promotion
-                            </label>
+                        <label className="flex items-center gap-2 text-sm mb-4">
+                            <input
+                                type="checkbox"
+                                checked={isOnPromotion}
+                                onChange={(e) => setIsOnPromotion(e.target.checked)}
+                                className="rounded border-gray-300 text-primary focus:ring-primary"
+                            />
+                            En promotion
+                        </label>
                         <label className="text-sm font-medium text-gray-700">Filtres actifs</label>
                         <div className="flex flex-wrap gap-1">
                             {searchQuery && (

@@ -5,10 +5,10 @@ import { authApi, authStorage, productsApi, vendorsApi, ProductItem, Vendor, API
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon, Baby, Car, Camera, Coffee, Dumbbell, Flower, Gift, Glasses, Hammer, Headphones, Laptop, Monitor, Music, Palette, Pill, Scissors, ShoppingBag, Sofa, Wrench, Truck, Watch, Wine, Zap, UserPlus } from "lucide-react";
+import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, Sparkles, Activity, Gamepad2, Heart, Home, Package, Store, BookOpen, type LucideIcon, LogInIcon, Baby, Car, Camera, Coffee, Dumbbell, Flower, Gift, Glasses, Hammer, Headphones, Laptop, Monitor, Music, Palette, Pill, Scissors, ShoppingBag, Sofa, Wrench, Truck, Watch, Wine, Zap, UserPlus, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useToast } from "@/app/hooks/use-toast";
-import { ToastContainer } from "@/app/components/ui/toast";
+import { useToast } from "@/app/contexts/ToastContext";
+import { useCart } from "@/app/contexts/CartContext";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -19,7 +19,26 @@ export function Navbar() {
   const pathname = usePathname();
   const [isAtTop, setIsAtTop] = React.useState(true);
   const [showSearchOnTop, setShowSearchOnTop] = React.useState(false);
-  const { toasts, removeToast, info } = useToast();
+  const toastHook = useToast();
+  const { info } = toastHook;
+  const { cart, isAuthenticated } = useCart();
+  
+  // Debug: vérifier si le contexte est utilisé
+  React.useEffect(() => {
+    console.log('[Navbar] useToast result:', toastHook);
+  }, []);
+
+  // Fonction pour gérer le clic sur le lien panier
+  const handleCartClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const token = authStorage.getToken();
+    console.log('[Navbar] handleCartClick called, token:', !!token, 'isAuthenticated:', isAuthenticated);
+    if (!token || !isAuthenticated) {
+      e.preventDefault();
+      console.log('[Navbar] User not authenticated, showing info toast');
+      info('Vous devez vous connecter d\'abord', 4000);
+      console.log('[Navbar] Info toast called');
+    }
+  };
 
   const [showResults, setShowResults] = React.useState(false);
   const [isSearching, setIsSearching] = React.useState(false);
@@ -506,6 +525,20 @@ export function Navbar() {
                   <Store className="w-4 h-4" />
                   Boutiques
                 </Link>
+                {/* Cart Icon */}
+            <Link 
+              href="/cart" 
+              onClick={handleCartClick}
+              className={`hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition relative ${pathname === "/cart" ? "text-white bg-orange-400 font-bold" : "text-gray-700 hover:text-primary hover:bg-gray-50"}`}
+            >
+              <ShoppingCart className="w-5 h-5" />
+              <p className="text-sm font-medium">Panier</p>
+              {cart && cart.totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                </span>
+              )}
+            </Link>
                 {currentUser && (currentUser.role === "superAdmin" || (currentUser.role === "vendor" && currentUser.status === "approved")) && (
                   <Link href={currentUser.role === "superAdmin" ? "/dashboard/admin" : "/dashboard/vendor"} className="px-2 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-sm md:ml-5 font-medium text-white bg-primary hover:opacity-90 rounded-lg transition shadow-sm">
                     Tableau de bord
@@ -559,15 +592,34 @@ export function Navbar() {
             {/* Mobile: Search button or Menu Button */}
             <div className="lg:hidden flex items-center gap-1">
 
-              {currentUser && (currentUser.role === "superAdmin" || (currentUser.role === "vendor" && currentUser.status === "approved")) ? (
+              {/* Cart Icon */}
+            <Link 
+              href="/cart" 
+              onClick={handleCartClick}
+              className={`lg:flex items-center gap-2 px-3 py-2 rounded-lg transition relative ${pathname === "/cart" ? "text-white bg-orange-400 font-bold" : "text-gray-700 hover:text-primary hover:bg-gray-50"}`}
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {cart && cart.totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cart.totalItems > 99 ? '99+' : cart.totalItems}
+                </span>
+              )}
+            </Link>
+
+
+              {!currentUser ? (
+                <Link href="/auth/login" className="ml-2 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
+                  Connexion
+                </Link>
+              ) : (currentUser.role === "superAdmin" || (currentUser.role === "vendor" && currentUser.status === "approved")) ? (
                 <Link href={currentUser.role === "superAdmin" ? "/dashboard/admin" : "/dashboard/vendor"} className="ml-2 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-sm font-medium text-white bg-primary rounded-lg transition shadow-sm">
                   Tableau de bord
                 </Link>
-              ) : (!currentUser || currentUser.role === "client" || (currentUser.role === "vendor" && currentUser.status === "pending")) ? (
+              ) : (
                 <button onClick={handleCreateShopClick} className="ml-2 px-2 py-1.5 sm:px-4 sm:py-2 md:text-[11px] text-[11px] font-medium text-white bg-primary rounded-lg transition shadow-sm">
                   Créer ma boutique
                 </button>
-              ) : null}
+              )}
 
               <button onClick={toggleMenu} className="p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition" aria-label="Toggle menu">
                 {isMenuOpen ? (
@@ -896,7 +948,6 @@ export function Navbar() {
           </div>
         )}
       </header>
-      <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );
 }

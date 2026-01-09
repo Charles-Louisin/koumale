@@ -12,6 +12,8 @@ import { ReviewForm } from "@/app/components/reviews/ReviewForm";
 import { ImageModal } from "@/app/components/ui/image-modal";
 import { API_BASE_URL } from "@/app/lib/api";
 import { authApi } from "@/app/lib/api";
+import AddToCartButton from "@/app/components/cart/AddToCartButton";
+import { SecurityWarningModal } from "@/app/components/ui/security-warning-modal";
 
 type LoadedProduct = ProductItem & { attributes?: Record<string, unknown> };
 
@@ -42,9 +44,11 @@ export default function ProductPage({
   const [error, setError] = useState<string | null>(null);
 
   // Fetch current authenticated user info
-  const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string } | null>(null);
+  const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string; hideSecurityWarning?: boolean } | null>(null);
 
   const [reviews, setReviews] = useState<ReviewType[]>([]);
+  const [showSecurityWarning, setShowSecurityWarning] = useState(false);
+  const [pendingContactAction, setPendingContactAction] = useState<(() => void) | null>(null);
 
   // Image modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -177,7 +181,11 @@ export default function ProductPage({
       try {
         const res = await authApi.getMe();
         if (!cancelled && res.success && res.data?.user) {
-          setCurrentUser({ firstName: res.data.user.firstName, lastName: res.data.user.lastName });
+          setCurrentUser({ 
+            firstName: res.data.user.firstName, 
+            lastName: res.data.user.lastName,
+            hideSecurityWarning: res.data.user.hideSecurityWarning
+          });
         } else {
           setCurrentUser(null);
         }
@@ -282,8 +290,46 @@ export default function ProductPage({
       link: `${window.location.origin}/vendor/${vendorSlug}/product/${productId}`
     };
 
-    return `Bonjour ! Je suis intéressé par ce produit :\n\n📦 **${productInfo.name}**\n💰 Prix: ${productInfo.price}\n📝 Description: ${productInfo.description}\n🔍 Caractéristiques: ${productInfo.attributes}\n🔗 Lien du produit: ${productInfo.link}\n\nPouvez-vous me donner plus d'informations afin de commander ?`;
+    return `Bonjour ! Je suis intéressé par ce produit :\n\n📦 **${productInfo.name}**\n💰 Prix: ${productInfo.price}\n📝 Description: ${productInfo.description}\n🔍 Caractéristiques: ${productInfo.attributes}\n🔗 Lien du produit: ${productInfo.link}\n\nPouvez-vous me confirmer la disponibilité et les détails de livraison ?\nMerci !`;
   }, [product, formattedPrice, attributeEntries, vendorSlug, productId]);
+
+  // Handle contact with security warning
+  const handleContactClick = (href: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    // Si l'utilisateur a choisi de ne plus voir l'avertissement, ouvrir directement
+    if (currentUser?.hideSecurityWarning) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Sinon, afficher le modal d'avertissement
+    setPendingContactAction(() => () => {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    });
+    setShowSecurityWarning(true);
+  };
+
+  const handleSecurityWarningContinue = () => {
+    if (pendingContactAction) {
+      pendingContactAction();
+      setPendingContactAction(null);
+    }
+  };
+
+  const handleDontShowAgain = async (checked: boolean) => {
+    if (checked) {
+      try {
+        await authApi.updatePreferences({ hideSecurityWarning: true });
+        // Mettre à jour l'état local
+        setCurrentUser(prev => prev ? { ...prev, hideSecurityWarning: true } : null);
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour des préférences:', error);
+      }
+    }
+  };
 
   // Contact options
   const contactOptions = React.useMemo(() => {
@@ -444,10 +490,10 @@ export default function ProductPage({
                     style={{ backgroundImage: `url(${vendor?.logo ?? FALLBACK_THUMB})` }}>
                   </div>
 
-                  <div className="flex text-gray-800">
-                    {vendor?.businessName ?? product.vendor?.businessName ?? "Boutique"}
-                  </div>
                 </div>
+                  <div className="flex text-gray-800">
+                {vendor?.businessName ?? product.vendor?.businessName ?? "Boutique"}
+                  </div>
               </Link>
             </div>
 
@@ -588,6 +634,16 @@ export default function ProductPage({
               ))}
             </motion.div>
 
+            {/* Add to Cart Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.05, duration: 0.6 }}
+              className="mb-6"
+            >
+              {product && <AddToCartButton product={product} size="md" className="w-full" />}
+            </motion.div>
+
             {/* Contact Actions */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -598,39 +654,39 @@ export default function ProductPage({
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Contacter le vendeur</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {contactOptions.map((option, index) => (
-                  <motion.a
+                  <motion.button
                     key={option.name}
-                    href={option.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    type="button"
+                    onClick={(e) => handleContactClick(option.href, e)}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 1.2 + index * 0.1, duration: 0.4 }}
-                    className={`flex items-center gap-3 p-4 rounded-xl ${option.color} ${option.textColor} transition-all hover:scale-105 shadow-sm`}
+                    className={`flex items-center gap-3 p-4 rounded-xl ${option.color} ${option.textColor} transition-all hover:scale-105 shadow-sm cursor-pointer`}
                   >
                     <option.icon className="w-5 h-5" />
                     <div>
                       <div className="font-semibold">{option.name}</div>
                       <div className="text-xs opacity-90">{option.description}</div>
                     </div>
-                  </motion.a>
+                  </motion.button>
                 ))}
               </div>
 
               {vendor?.contactPhone && (
-                <motion.a
-                  href={`tel:${vendor.contactPhone}`}
+                <motion.button
+                  type="button"
+                  onClick={(e) => handleContactClick(`tel:${vendor.contactPhone}`, e)}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 1.5, duration: 0.4 }}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 text-white transition-all hover:scale-105 shadow-sm block"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-gray-400 text-white transition-all hover:scale-105 shadow-sm w-full cursor-pointer"
                 >
                   <Phone className="w-5 h-5" />
                   <div>
                     <div className="font-semibold">Appeler</div>
                     <div className="text-xs opacity-90">Contact direct</div>
                   </div>
-                </motion.a>
+                </motion.button>
               )}
             </motion.div>
 
@@ -778,6 +834,17 @@ export default function ProductPage({
         currentIndex={modalCurrentIndex}
         onNext={goToNextImage}
         onPrevious={goToPreviousImage}
+      />
+
+      {/* Security Warning Modal */}
+      <SecurityWarningModal
+        isOpen={showSecurityWarning}
+        onClose={() => {
+          setShowSecurityWarning(false);
+          setPendingContactAction(null);
+        }}
+        onContinue={handleSecurityWarningContinue}
+        showCheckbox={false}
       />
     </main>
   );

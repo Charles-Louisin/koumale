@@ -7,7 +7,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
-import { LogIn, Mail, Lock, ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { LogIn, Mail, Lock, ArrowRight, ArrowLeft, Eye, EyeOff, ArrowUp01Icon, ArrowUpIcon } from "lucide-react";
 import { authApi, authStorage } from "@/app/lib/api";
 import { useToast } from "@/app/hooks/use-toast";
 import { ToastContainer } from "@/app/components/ui/toast";
@@ -20,7 +20,38 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
   const [touched, setTouched] = useState<{ email: boolean; password: boolean }>({ email: false, password: false });
+
+  // Capturer la page précédente au chargement
+  React.useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectParam = searchParams.get('redirect');
+    
+    // Si un paramètre redirect est fourni, l'utiliser
+    if (redirectParam) {
+      sessionStorage.setItem('auth_redirect', redirectParam);
+      return;
+    }
+    
+    // Sinon, vérifier si une redirection est déjà stockée (pour éviter de l'écraser)
+    const existingRedirect = sessionStorage.getItem('auth_redirect');
+    if (existingRedirect) {
+      return;
+    }
+    
+    // Utiliser la page précédente si elle existe et est valide
+    const referrer = document.referrer;
+    const currentOrigin = window.location.origin;
+    
+    if (referrer && referrer.startsWith(currentOrigin)) {
+      const referrerPath = new URL(referrer).pathname;
+      // Ne pas stocker si c'est une page d'auth ou si c'est la même page
+      if (!referrerPath.startsWith('/auth') && referrerPath !== window.location.pathname) {
+        sessionStorage.setItem('auth_redirect', referrerPath);
+      }
+    }
+  }, []);
 
   const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string; role?: "client" | "vendor" | "superAdmin"; status?: "pending" | "approved" } | null>(null);
 
@@ -73,9 +104,15 @@ export default function LoginPage() {
         const fullName = `${response.user?.firstName ?? ''} ${response.user?.lastName ?? ''}`.trim();
         success(fullName ? `Bienvenu(e) ${fullName}` : "Connexion réussie !");
 
-        // Rediriger selon le rôle
+        // Récupérer la page de redirection
+        const redirectPath = sessionStorage.getItem('auth_redirect');
+        sessionStorage.removeItem('auth_redirect');
+
+        // Rediriger selon le rôle ou vers la page précédente
         setTimeout(() => {
-          if (response.user?.role === "vendor") {
+          if (redirectPath && !redirectPath.startsWith('/auth')) {
+            router.push(redirectPath);
+          } else if (response.user?.role === "vendor") {
             router.push("/dashboard/vendor");
           } else if (response.user?.role === "superAdmin") {
             router.push("/dashboard/admin");
@@ -102,6 +139,24 @@ export default function LoginPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleGoogleLogin = () => {
+    // S'assurer que la redirection est stockée avant de rediriger vers Google
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectParam = searchParams.get('redirect');
+    
+    if (!redirectParam) {
+      const referrer = document.referrer;
+      const currentOrigin = window.location.origin;
+      
+      if (referrer && referrer.startsWith(currentOrigin)) {
+        const referrerPath = new URL(referrer).pathname;
+        if (!referrerPath.startsWith('/auth')) {
+          sessionStorage.setItem('auth_redirect', referrerPath);
+        }
+      }
+    } else {
+      sessionStorage.setItem('auth_redirect', redirectParam);
+    }
+    
     const url = `${API_URL}/api/auth/google`;
     window.location.href = url;
   };
@@ -137,13 +192,14 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Bouton Google */}
-            <div className="mb-6">
+            {/* Bouton Google - Principal */}
+            <div className="mb-4">
               <Button
                 type="button"
                 onClick={handleGoogleLogin}
-                className="w-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 group"
+                className="w-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 group shadow-sm hover:shadow-md"
                 disabled={loading}
+                size="md"
               >
                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -155,17 +211,33 @@ export default function LoginPage() {
               </Button>
             </div>
 
-            <div className="relative mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+            {/* Bouton "Utiliser une autre méthode" - Subtile */}
+            {!showEmailForm && (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={() => setShowEmailForm(true)}
+                  className="w-full cursor-pointer text-sm text-gray-600 hover:text-gray-900 transition-colors py-2"
+                >
+                  Utiliser une autre méthode
+                </button>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">ou</span>
-              </div>
-            </div>
+            )}
 
-            {/* Formulaire */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Formulaire Email/Password - Se dévoile avec animation */}
+            {showEmailForm && (
+              <div className="overflow-hidden animate-fade-in">
+                <div className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailForm(false)}
+                    className="w-full cursor-pointer text-sm text-gray-500 hover:text-gray-700 transition-colors py-2 flex items-center justify-center gap-2 mb-2"
+                  >
+                    <ArrowUpIcon className="w-4 h-4" />
+                    Masquer
+                  </button>
+
+                  <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email" className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-500" />
@@ -219,13 +291,16 @@ export default function LoginPage() {
                 </div>
                 {passwordError && <p className="text-xs text-red-600 mt-1">{passwordError}</p>}
               </div>
-              <Button type="submit" className="w-full" size="md" disabled={loading || !!emailError || !!passwordError}>
-                {loading ? "Connexion..." : "Se connecter"}
-              </Button>
-            </form>
+                    <Button type="submit" className="w-full" size="md" disabled={loading || !!emailError || !!passwordError}>
+                      {loading ? "Connexion..." : "Se connecter"}
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            )}
 
             {/* Liens footer */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="mt-8 pt-6 border-gray-200">
               <div className="text-center space-y-4">
                 <div className="text-sm text-gray-600">
                   Pas encore de compte?{" "}

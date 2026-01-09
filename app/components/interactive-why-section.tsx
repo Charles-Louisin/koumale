@@ -10,7 +10,7 @@ const features = [
     id: 1,
     icon: Store,
     title: "Pour les Vendeurs",
-    gradient: "from-primary to-orange-500",
+    gradient: "bg-orange-500",
     content: {
       intro: "Vous êtes un petit commerçant ou vous vendez vos produits depuis chez vous ?",
       problem: "Vous en avez marre de poster sur WhatsApp et Facebook sans vraie visibilité ?",
@@ -50,7 +50,7 @@ const features = [
     id: 2,
     icon: ShoppingBag,
     title: "Pour les Acheteurs",
-    gradient: "from-blue-500 to-purple-500",
+    gradient: "bg-purple-500",
     content: {
       intro: "Vous cherchez un produit spécifique au Cameroun ?",
       problem: "Difficile de comparer les prix et de trouver le bon vendeur ?",
@@ -90,7 +90,7 @@ const features = [
     id: 3,
     icon: Shield,
     title: "Sécurité & Confiance",
-    gradient: "from-green-500 to-emerald-500",
+    gradient: "bg-emerald-500",
     content: {
       intro: "Votre sécurité est notre priorité absolue",
       problem: "Peur de tomber sur des vendeurs malhonnêtes ?",
@@ -230,7 +230,7 @@ export default function InteractiveWhySection() {
                 }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all ${
                   currentFeature === idx
-                    ? `bg-gradient-to-r ${f.gradient} text-white shadow-lg scale-105`
+                    ? `bg-linear-to-r ${f.gradient} text-white shadow-lg scale-105`
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -253,7 +253,7 @@ export default function InteractiveWhySection() {
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <motion.div
-              className={`h-full bg-gradient-to-r ${feature.gradient}`}
+              className={`h-full bg-linear-to-r ${feature.gradient}`}
               initial={{ width: 0 }}
               animate={{ width: `${((currentStep + 1) / 5) * 100}%` }}
               transition={{ duration: 0.5 }}
@@ -293,7 +293,7 @@ export default function InteractiveWhySection() {
             className={`bg-white rounded-2xl ${windowWidth <= 440 ? 'p-4 md:p-6' : 'p-6 md:p-8'} shadow-xl border border-gray-100 cursor-grab active:cursor-grabbing`}
           >
             {/* Icon */}
-            <div className={`${windowWidth <= 440 ? 'w-12 h-12 mb-3' : 'w-16 h-16 mb-4'} bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mx-auto`}>
+            <div className={`${windowWidth <= 440 ? 'w-12 h-12 mb-3' : 'w-16 h-16 mb-4'} bg-linear-to-br ${feature.gradient} rounded-xl flex items-center justify-center mx-auto`}>
               <Icon className={`${windowWidth <= 440 ? 'w-6 h-6' : 'w-8 h-8'} text-white`} />
             </div>
 

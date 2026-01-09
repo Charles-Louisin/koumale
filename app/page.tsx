@@ -25,6 +25,7 @@ import InteractiveHowItWorksSection from "./components/interactive-how-it-works-
 import { calculateDiscountPercentage } from "./lib/utils";
 import { ReviewListCarousel } from "./components/reviews/ReviewListCarousel";
 import { ReviewForm } from "./components/reviews/ReviewForm";
+import AddToCartButton from "./components/cart/AddToCartButton";
 
 // Helper function to get first image from array or fallback
 const getProductImage = (images: string[] | undefined): string => {
@@ -180,6 +181,123 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white">
 
+      {/* New Products - Horizontal Scroll */}
+      <section className="py-16 md:py-24 px-4 md:px-6 bg-white" aria-labelledby="new-products-heading">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className={`${windowWidth <= 440 ? 'flex items-center justify-between gap-2 mb-6' : 'flex items-center justify-between mb-8'}`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-indigo-500 rounded-2xl flex items-center justify-center`}>
+                  <ShoppingBag className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white animate-pulse`} />
+                </div>
+                <div>
+                  <h2 id="new-products-heading" className={`${windowWidth <= 440 ? 'text-[15px]' : 'text-2xl md:text-4xl'} font-display font-bold text-gray-800`}>
+                    Nouveaux Produits
+                  </h2>
+                  <p className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-sm'} text-gray-600`}>Découvrez les dernières nouveautés</p>
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/products"
+              className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-indigo-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
+            >
+              Voir tout
+              <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
+            </Link>
+          </motion.div>
+
+          {loading ? (
+            <SkeletonLoading type="products" count={6} />
+          ) : (
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 pb-4" style={{ minWidth: 'min-content' }}>
+                {newProducts.length > 0 ? newProducts.map((product, index) => (
+                  <motion.article
+                    key={product._id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.05 }}
+                    className="group shrink-0 w-48 relative"
+                  >
+                    <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
+                      <Card className="overflow-hidden bg-white border aspect-square border-gray-200 hover:border-blue-400/40 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer rounded-2xl relative">
+                        <div className="relative bg-gray-50 overflow-hidden w-full h-full">
+                          <LazyImage
+                            src={getProductImage(product.images)}
+                            alt={product.name}
+                            fill
+                            priority={index < 6}
+                            sizes="(max-width: 640px) 50v(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-transparent opacity-100 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                          <div className={`absolute bottom-0 left-0 right-0 ${windowWidth <= 440 ? 'p-2' : 'p-3'} text-white`}>
+                            {product.vendor && (
+                              <span className={`${windowWidth <= 440 ? 'text-[8px] mb-0.5' : 'text-[9px] mb-1'} text-white/90 font-medium truncate block uppercase tracking-wide`}>
+                                {product.vendor.businessName}
+                              </span>
+                            )}
+                            <h3 className={`line-clamp-2 leading-tight ${windowWidth <= 440 ? 'mb-0.5 text-[10px] font-medium' : 'mb-1 text-xs font-medium'}`}>
+                              {product.name}
+                            </h3>
+                            {/* Rating Display */}
+                            {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                              <div className={`flex items-center gap-1 ${windowWidth <= 440 ? 'mb-0.5' : 'mb-1'}`}>
+                                <Star className={`${windowWidth <= 440 ? 'w-1.5 h-1.5' : 'w-2 h-2'} text-yellow-400 fill-current`} />
+                                <span className={`${windowWidth <= 440 ? 'text-[7px]' : 'text-[8px]'} font-medium text-white/90`}>
+                                  {product.averageRating.toFixed(1)}
+                                </span>
+                                <span className={`${windowWidth <= 440 ? 'text-[7px]' : 'text-[8px]'} text-white/70`}>
+                                  ({product.reviewCount} avis)
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex items-center justify-start gap-1.5">
+                              {product.promotionalPrice && product.promotionalPrice > 0 ? (
+                                <div className="flex flex-col items-start gap-1">
+                                  <span className={`${windowWidth <= 440 ? 'text-[11px]' : 'text-xs'} font-bold text-white`}>
+                                    {product.promotionalPrice.toFixed(0)} FCFA
+                                  </span>
+                                  <span className={`${windowWidth <= 440 ? 'text-[8px]' : 'text-[9px]'} text-white/70 line-through`}>
+                                    {product.price.toFixed(0)} FCFA
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className={`${windowWidth <= 440 ? 'text-[11px]' : 'text-xs'} font-bold`}>
+                                  {product.price.toFixed(0)} FCFA
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {/* Add to Cart Button - Mobile Icon */}
+                          <div className="absolute bottom-4 right-2 lg:hidden z-30" onClick={(e) => e.stopPropagation()}>
+                            <AddToCartButton product={product} variant="mobile-icon" />
+                          </div>
+                          {/* Add to Cart Button - Desktop Icon (on hover) */}
+                          <div className="absolute top-4 right-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-30" onClick={(e) => e.stopPropagation()}>
+                            <AddToCartButton product={product} variant="icon" />
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  </motion.article>
+                )) : (
+                  <div className="w-full text-center py-12 text-gray-500">Aucun nouveau produit</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Promotions Flash - Modern Carousel */}
       {promotionProducts.length > 0 && (
@@ -194,7 +312,7 @@ export default function Home() {
             >
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-gradient-to-br from-red-500 to-orange-500 rounded-2xl flex items-center justify-center`}>
+                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-orange-500 rounded-2xl flex items-center justify-center`}>
                     <Tag className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white animate-pulse`} />
                   </div>
                   <div>
@@ -207,7 +325,7 @@ export default function Home() {
               </div>
               <Link
                 href="/products?promotion=true"
-                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'inline-flex items-center gap-1 px-3 py-2 text-[15px] md:px-6 md:py-3'} bg-gradient-to-r from-primary to-orange-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
+                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'inline-flex items-center gap-1 px-3 py-2 text-[15px] md:px-6 md:py-3'} bg-orange-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
               >
                 Voir tout
                 <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-3 h-3 md:w-4 md:h-4'}`} />
@@ -233,6 +351,7 @@ export default function Home() {
                   const variantIndex = index % cardVariants.length;
                   const isCompact = index % 3 === 0; // Every 3rd card is compact
                   const hasOverlay = index % 2 === 0; // Alternate overlay styles
+                  const hasBadge = product.createdAt && (new Date().getTime() - new Date(product.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000; // New badge for products created within the last week
 
                   return (
                     <motion.article
@@ -241,7 +360,7 @@ export default function Home() {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ duration: 0.5, delay: index * 0.05 }}
-                      className="group"
+                      className="group relative"
                     >
                       <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
                         <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-red-400/30 shadow-lg hover:shadow-sm transition-all duration-300 hover:-translate-y-1 cursor-pointer aspect-square ${cardVariants[variantIndex]} ${isCompact ? 'shadow-md' : 'shadow-sm'}`}>
@@ -259,14 +378,20 @@ export default function Home() {
                                 -{calculateDiscountPercentage(product.price, product.promotionalPrice)}%
                               </div>
                             )}
+                            {hasBadge && !product.promotionalPrice && (
+                              <div className={`absolute top-2 left-2 bg-primary text-white ${windowWidth <= 440 ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-xs'} ${variantIndex === 3 ? 'rounded-full' : 'rounded-lg'} font-bold shadow-sm z-10 flex items-center gap-1`}>
+                                <Tag className={`${windowWidth <= 440 ? 'w-2 h-2' : 'w-3 h-3'}`} />
+                                New
+                              </div>
+                            )}
                             {hasOverlay && (
-                              <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-transparent to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                              <div className="absolute inset-0 bg-linear-to-br from-red-500/10 via-transparent to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             )}
                             {!hasOverlay && (
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                              <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             )}
                             {/* Overlay content */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-300"></div>
                             <div className={`absolute bottom-0 left-0 right-0 ${windowWidth <= 440 ? 'p-2' : 'p-3'} text-white`}>
                               {product.vendor && (
                                 <span className={`${windowWidth <= 440 ? 'text-[9px] mb-0' : 'text-xs'} text-white/90 truncate block mb-1`}>
@@ -305,14 +430,19 @@ export default function Home() {
                                     </span>
                                   )}
                                 </div>
-                                <div className={`bg-white/30 rounded-full flex items-center justify-center ${windowWidth <= 440 ? 'w-5 h-5' : 'w-6 h-6'}`}>
-                                  <ArrowRight className={`${windowWidth <= 440 ? 'w-2 h-2' : 'w-3 h-3'} text-white`} />
-                                </div>
                               </div>
                             </div>
                           </div>
                         </Card>
                       </Link>
+                      {/* Add to Cart Button - Mobile Icon */}
+                      <div className="absolute bottom-4 right-2 lg:hidden z-20">
+                        <AddToCartButton product={product} variant="mobile-icon" />
+                      </div>
+                      {/* Add to Cart Button - Desktop Icon (on hover) */}
+                      <div className="absolute top-2 right-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        <AddToCartButton product={product} variant="icon" />
+                      </div>
                     </motion.article>
                   );
                 }) : (
@@ -326,230 +456,140 @@ export default function Home() {
 
 
       {/* Trending Products - Bento Grid Style */}
-        <section className="py-16 md:py-24 px-4 md:px-6 bg-gradient-to-br from-gray-50 to-white" aria-labelledby="trending-heading">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className={`${windowWidth <= 440 ? 'flex items-center justify-between gap-4 mb-6' : 'flex items-center justify-between mb-8'}`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center`}>
-                    <Flame className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white animate-pulse`} />
-                  </div>
-                  <div>
-                    <h2 id="trending-heading" className={`${windowWidth <= 440 ? 'text-[15px]' : 'text-2xl md:text-4xl'} font-display font-bold text-gray-800`}>
-                      Produits Tendance
-                    </h2>
-                    <p className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-sm'} text-gray-600`}>Les plus populaires du moment</p>
-                  </div>
+      <section className="py-16 md:py-24 px-4 md:px-6 bg-linear-to-br from-gray-50 to-white" aria-labelledby="trending-heading">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className={`${windowWidth <= 440 ? 'flex items-center justify-between gap-4 mb-6' : 'flex items-center justify-between mb-8'}`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-purple-500 rounded-2xl flex items-center justify-center`}>
+                  <Flame className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white animate-pulse`} />
+                </div>
+                <div>
+                  <h2 id="trending-heading" className={`${windowWidth <= 440 ? 'text-[15px]' : 'text-2xl md:text-4xl'} font-display font-bold text-gray-800`}>
+                    Produits Tendance
+                  </h2>
+                  <p className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-sm'} text-gray-600`}>Les plus populaires du moment</p>
                 </div>
               </div>
-              <Link
-                href="/products"
-                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
-              >
-                Voir tout
-                <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
-              </Link>
-            </motion.div>
+            </div>
+            <Link
+              href="/products"
+              className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-purple-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
+            >
+              Voir tout
+              <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
+            </Link>
+          </motion.div>
 
-            {loading ? (
-              <div className="text-center py-16">
-                <div className="inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="mt-4 text-gray-500">Chargement des produits...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                {trendingProducts.length > 0 ? trendingProducts.map((product, index) => {
-                  const cardVariants = [
-                    // Variant 1: Standard with subtle border
-                    "rounded-2xl border-2",
-                    // Variant 2: Minimalist with thin border
-                    "rounded-xl border",
-                    // Variant 3: Sharp with colored accent
-                    "rounded-lg border-l-4 border-l-purple-500",
-                    // Variant 4: Rounded with shadow
-                    "rounded-3xl shadow-lg"
-                  ];
-                  const variantIndex = index % cardVariants.length;
-                  const isMinimal = index % 4 === 0; // Every 4th card is minimal
-                  const hasBadge = index % 3 !== 0; // Most cards have badges
+          {loading ? (
+            <div className="text-center py-16">
+              <div className="inline-block w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 text-gray-500">Chargement des produits...</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              {trendingProducts.length > 0 ? trendingProducts.map((product, index) => {
+                const cardVariants = [
+                  // Variant 1: Standard with subtle border
+                  "rounded-2xl border-2",
+                  // Variant 2: Minimalist with thin border
+                  "rounded-xl border",
+                  // Variant 3: Sharp with colored accent
+                  "rounded-lg border-l-4 border-l-purple-500",
+                  // Variant 4: Rounded with shadow
+                  "rounded-3xl shadow-lg"
+                ];
+                const variantIndex = index % cardVariants.length;
+                const isMinimal = index % 4 === 0; // Every 4th card is minimal
+                const hasBadge = product.createdAt && (new Date().getTime() - new Date(product.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000; // New badge for products created within the last week
 
-                  return (
-                    <motion.article
-                      key={product._id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.05 }}
-                      className="group"
-                    >
-                      <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
-                        <Card className={`overflow-hidden bg-white border-gray-200 hover:border-purple-400/40 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer aspect-square ${cardVariants[variantIndex]} ${isMinimal ? 'bg-gradient-to-br from-white to-purple-50/30' : ''}`}>
-                          <div className="relative bg-gray-50 overflow-hidden w-full h-full">
-                            <LazyImage
-                              src={getProductImage(product.images)}
-                              alt={product.name}
-                              fill
-                              priority={index < 6}
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                              className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className={`absolute inset-0 ${variantIndex === 2 ? 'bg-gradient-to-bl from-purple-500/20 via-transparent to-pink-500/20' : 'bg-gradient-to-t from-black/25 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                            {/* Permanent black gradient at bottom */}
-                            <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
-                            {/* Text content positioned in the black area */}
-                            <div className={`absolute bottom-0 left-0 right-0 ${windowWidth <= 440 ? 'p-2' : 'p-4'} text-white`}>
-                              {product.vendor && (
-                                <span className={`${windowWidth <= 440 ? 'text-[9px] mb-0' : 'text-xs mb-2'} text-white/90 font-medium truncate block uppercase tracking-wide`}>
-                                  {product.vendor.businessName}
+                return (
+                  <motion.article
+                    key={product._id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.05 }}
+                    className="group relative"
+                  >
+                    <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
+                      <Card className={`overflow-hidden bg-white border-gray-200 hover:border-purple-400/40 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer aspect-square ${cardVariants[variantIndex]} ${isMinimal ? 'bg-linear-to-br from-white to-purple-50/30' : ''} relative`}>
+                        <div className="relative bg-gray-50 overflow-hidden w-full h-full">
+                          <LazyImage
+                            src={getProductImage(product.images)}
+                            alt={product.name}
+                            fill
+                            priority={index < 6}
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          {hasBadge && (
+                            <div className={`absolute top-2 left-2 bg-primary text-white ${windowWidth <= 440 ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-xs'} ${variantIndex === 3 ? 'rounded-full' : 'rounded-lg'} font-bold shadow-sm z-10 flex items-center gap-1`}>
+                              <Tag className={`${windowWidth <= 440 ? 'w-2 h-2' : 'w-3 h-3'}`} />
+                              New
+                            </div>
+                          )}
+                          <div className={`absolute inset-0 ${variantIndex === 2 ? 'bg-linear-to-bl from-purple-500/20 via-transparent to-pink-500/20' : 'bg-linear-to-t from-black/25 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                          {/* Permanent black gradient at bottom */}
+                          <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-linear-to-t from-black/70 via-black/30 to-transparent"></div>
+                          {/* Text content positioned in the black area */}
+                          <div className={`absolute bottom-0 left-0 right-0 ${windowWidth <= 440 ? 'p-2' : 'p-3'} text-white`}>
+                            {product.vendor && (
+                              <span className={`${windowWidth <= 440 ? 'text-[8px] mb-0' : 'text-[10px] mb-1.5'} text-white/90 font-medium truncate block uppercase tracking-wide`}>
+                                {product.vendor.businessName}
+                              </span>
+                            )}
+                            <h3 className={`line-clamp-2 leading-tight ${windowWidth <= 440 ? 'mb-0 text-[9px] font-semibold' : 'mb-1.5 text-sm font-semibold'}`}>
+                              {product.name}
+                            </h3>
+                            {/* Rating Display */}
+                            {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                              <div className={`flex items-center gap-1 ${windowWidth <= 440 ? 'mb-0' : 'mb-1.5'}`}>
+                                <Star className={`${windowWidth <= 440 ? 'w-2 h-2' : 'w-2.5 h-2.5'} text-yellow-400 fill-current`} />
+                                <span className={`${windowWidth <= 440 ? 'text-[8px]' : 'text-[10px]'} font-medium text-white/90`}>
+                                  {product.averageRating.toFixed(1)}
                                 </span>
-                              )}
-                              <h3 className={`line-clamp-2 leading-tight ${windowWidth <= 440 ? 'mb-0 text-[10px] font-semibold' : 'mb-2 text-base font-semibold'}`}>
-                                {product.name}
-                              </h3>
-                              {/* Rating Display */}
-                              {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
-                                <div className={`flex items-center gap-1 ${windowWidth <= 440 ? 'mb-0' : 'mb-2'}`}>
-                                  <Star className={`${windowWidth <= 440 ? 'w-2 h-2' : 'w-3 h-3'} text-yellow-400 fill-current`} />
-                                  <span className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-xs'} font-medium text-white/90`}>
-                                    {product.averageRating.toFixed(1)}
-                                  </span>
-                                  <span className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-xs'} text-white/70`}>
-                                    ({product.reviewCount} avis)
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <span className={`${windowWidth <= 440 ? 'text-[13px]' : 'text-lg'} font-bold`}>
-                                  {product.price.toFixed(0)} FCFA
+                                <span className={`${windowWidth <= 440 ? 'text-[8px]' : 'text-[10px]'} text-white/70`}>
+                                  ({product.reviewCount} avis)
                                 </span>
-                                <div className={`bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 ${windowWidth <= 440 ? 'w-5 h-5' : 'w-8 h-8'}`}>
-                                  <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'} text-white`} />
-                                </div>
                               </div>
+                            )}
+                            <div className="flex items-center justify-between">
+                              <span className={`${windowWidth <= 440 ? 'text-[11px]' : 'text-base'} font-bold`}>
+                                {product.price.toFixed(0)} FCFA
+                              </span>
                             </div>
                           </div>
-                        </Card>
-                      </Link>
-                    </motion.article>
-                  );
-                }) : (
-                  <div className="col-span-full text-center py-12 text-gray-500">Aucun produit tendance</div>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
+                          {/* Add to Cart Button - Mobile Icon */}
+                          <div className="absolute top-2 left-2 lg:hidden z-30" onClick={(e) => e.stopPropagation()}>
+                            <AddToCartButton product={product} variant="mobile-icon" />
+                          </div>
+                          {/* Add to Cart Button - Desktop Icon (on hover) */}
+                          <div className="absolute top-2 right-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-30" onClick={(e) => e.stopPropagation()}>
+                            <AddToCartButton product={product} variant="icon" />
+                          </div>
+                        </div>
+                      </Card>
+                    </Link>
+                  </motion.article>
+                );
+              }) : (
+                <div className="col-span-full text-center py-12 text-gray-500">Aucun produit tendance</div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Why Choose KOUMALE - Interactive Learning Experience */}
       <InteractiveWhySection />
 
-      {/* New Products - Horizontal Scroll */}
-        <section className="py-16 md:py-24 px-4 md:px-6 bg-white" aria-labelledby="new-products-heading">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className={`${windowWidth <= 440 ? 'flex items-center justify-between gap-2 mb-6' : 'flex items-center justify-between mb-8'}`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center`}>
-                    <ShoppingBag className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white animate-pulse`} />
-                  </div>
-                  <div>
-                    <h2 id="new-products-heading" className={`${windowWidth <= 440 ? 'text-[15px]' : 'text-2xl md:text-4xl'} font-display font-bold text-gray-800`}>
-                      Nouveaux Produits
-                    </h2>
-                    <p className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-sm'} text-gray-600`}>Découvrez les dernières nouveautés</p>
-                  </div>
-                </div>
-              </div>
-              <Link
-                href="/products"
-                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
-              >
-                Voir tout
-                <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
-              </Link>
-            </motion.div>
-
-            {loading ? (
-              <SkeletonLoading type="products" count={6} />
-            ) : (
-              <div className="overflow-x-auto scrollbar-hide">
-                <div className="flex gap-4 pb-4" style={{ minWidth: 'min-content' }}>
-                  {newProducts.length > 0 ? newProducts.map((product, index) => (
-                    <motion.article
-                      key={product._id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.05 }}
-                      className="group shrink-0 w-48"
-                    >
-                      <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
-                        <Card className="overflow-hidden bg-white border aspect-square border-gray-200 hover:border-blue-400/40 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 cursor-pointer rounded-2xl">
-                          <div className="relative bg-gray-50 overflow-hidden w-full h-full">
-                            <LazyImage
-                              src={getProductImage(product.images)}
-                              alt={product.name}
-                              fill
-                              priority={index < 6}
-                              sizes="(max-width: 640px) 50v(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                              className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-100 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                            <div className={`absolute bottom-0 left-0 right-0 ${windowWidth <= 440 ? 'p-3' : 'p-4'} text-white`}>
-                              {product.vendor && (
-                                <span className={`${windowWidth <= 440 ? 'text-[10px] mb-1' : 'text-xs mb-2'} text-white/90 font-medium truncate block uppercase tracking-wide`}>
-                                  {product.vendor.businessName}
-                                </span>
-                              )}
-                              <h3 className={`line-clamp-2 leading-tight ${windowWidth <= 440 ? 'mb-1 text-sm font-semibold' : 'mb-2 text-base font-semibold'}`}>
-                                {product.name}
-                              </h3>
-                              {/* Rating Display */}
-                              {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
-                                <div className={`flex items-center gap-1 ${windowWidth <= 440 ? 'mb-1' : 'mb-2'}`}>
-                                  <Star className={`${windowWidth <= 440 ? 'w-2 h-2' : 'w-3 h-3'} text-yellow-400 fill-current`} />
-                                  <span className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-xs'} font-medium text-white/90`}>
-                                    {product.averageRating.toFixed(1)}
-                                  </span>
-                                  <span className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-xs'} text-white/70`}>
-                                    ({product.reviewCount} avis)
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <span className={`${windowWidth <= 440 ? 'text-base' : 'text-lg'} font-bold`}>
-                                  {product.price.toFixed(0)} FCFA
-                                </span>
-                                <div className={`bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 ${windowWidth <= 440 ? 'w-6 h-6' : 'w-8 h-8'}`}>
-                                  <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'} text-white`} />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </Card>
-                      </Link>
-                    </motion.article>
-                  )) : (
-                    <div className="w-full text-center py-12 text-gray-500">Aucun nouveau produit</div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
 
       {/* New Vendors - Modern Cards */}
       {newVendors.length > 0 && (
@@ -564,7 +604,7 @@ export default function Home() {
             >
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center`}>
+                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-linear-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center`}>
                     <Sparkles className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white animate-pulse`} />
                   </div>
                   <div>
@@ -577,7 +617,7 @@ export default function Home() {
               </div>
               <Link
                 href="/vendors"
-                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
+                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-emerald-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
               >
                 Voir tout
                 <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
@@ -614,7 +654,7 @@ export default function Home() {
                     >
                       <Link href={`/vendor/${vendor.vendorSlug}`}>
                         <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-green-400/40 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-2 cursor-pointer ${cardVariants[variantIndex]}`}>
-                          <div className="aspect-[4/3] relative bg-gray-50">
+                          <div className="aspect-4/3 relative bg-gray-50">
                             <LazyImage
                               src={vendor.coverImage || "https://placehold.co/400x300/000000/FFFFFF/png?text=Boutique"}
                               alt={`Bannière ${vendor.businessName}`}
@@ -623,7 +663,7 @@ export default function Home() {
                               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
-                            <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-gradient-to-br from-green-500/15 via-transparent to-teal-500/15' : 'bg-gradient-to-t from-black/40 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                            <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-linear-to-br from-green-500/15 via-transparent to-teal-500/15' : 'bg-linear-to-t from-black/40 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                             {vendor.logo && (
                               <div className={`absolute border-3 border-white overflow-hidden shadow-xl bg-white ${logoPosition === 0 ? '-bottom-6 left-3 w-12 h-12 rounded-xl' : logoPosition === 1 ? '-bottom-5 right-3 w-10 h-10 rounded-full' : 'top-3 left-3 w-14 h-14 rounded-2xl'}`}>
                                 <LazyImage
@@ -662,144 +702,144 @@ export default function Home() {
 
 
       {/* Popular Vendors */}
-        <section className="py-16 md:py-24 px-4 md:px-6 bg-gradient-to-br from-gray-50 to-white" aria-labelledby="popular-vendors-heading">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className={`${windowWidth <= 440 ? 'flex justify-between items-center gap-4 mb-6' : 'flex items-center justify-between mb-8'}`}
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center`}>
-                    <Star className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white fill-white animate-pulse`} />
-                  </div>
-                  <div>
-                    <h2 id="popular-vendors-heading" className={`${windowWidth <= 440 ? 'text-[14px]' : 'text-2xl md:text-4xl'} font-display font-bold text-gray-800`}>
-                      Boutiques Populaires
-                    </h2>
-                    <p className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-sm'} text-gray-600`}>Les mieux notées par nos clients</p>
-                  </div>
+      <section className="py-16 md:py-24 px-4 md:px-6 bg-linear-to-br from-gray-50 to-white" aria-labelledby="popular-vendors-heading">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className={`${windowWidth <= 440 ? 'flex justify-between items-center gap-4 mb-6' : 'flex items-center justify-between mb-8'}`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <div className={`${windowWidth <= 440 ? 'w-8 h-8' : 'w-12 h-12'} bg-linear-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center`}>
+                  <Star className={`${windowWidth <= 440 ? 'w-4 h-4' : 'w-6 h-6'} text-white fill-white animate-pulse`} />
+                </div>
+                <div>
+                  <h2 id="popular-vendors-heading" className={`${windowWidth <= 440 ? 'text-[14px]' : 'text-2xl md:text-4xl'} font-display font-bold text-gray-800`}>
+                    Boutiques Populaires
+                  </h2>
+                  <p className={`${windowWidth <= 440 ? 'text-[9px]' : 'text-sm'} text-gray-600`}>Les mieux notées par nos clients</p>
                 </div>
               </div>
-              <Link
-                href="/vendors"
-                className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
-              >
-                Voir tout
-                <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
-              </Link>
-            </motion.div>
+            </div>
+            <Link
+              href="/vendors"
+              className={`${windowWidth <= 440 ? 'flex items-center gap-1 px-2 py-2 text-[10px]' : 'flex md:inline-flex items-center gap-1 px-3 py-2 text-[15px] md:gap-2 md:px-6 md:py-3'} bg-yellow-500 text-white font-semibold rounded-full hover:shadow-lg transition-all hover:-translate-y-1`}
+            >
+              Voir tout
+              <ArrowRight className={`${windowWidth <= 440 ? 'w-3 h-3' : 'w-4 h-4'}`} />
+            </Link>
+          </motion.div>
 
-            {loading ? (
-              <SkeletonLoading type="vendors" count={6} />
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                {popularVendors.length > 0 ? popularVendors.map((vendor, index) => {
-                  const cardVariants = [
-                    // Variant 1: Premium with gold accent
-                    "rounded-2xl border-2 border-yellow-200/50",
-                    // Variant 2: Modern with angled border
-                    "rounded-xl border-r-4 border-r-yellow-500",
-                    // Variant 3: Classic with shadow and badge
-                    "rounded-lg shadow-xl",
-                    // Variant 4: Artistic with background pattern
-                    "rounded-3xl bg-gradient-to-br from-yellow-50/60 to-amber-50/40"
-                  ];
-                  // Calculate combined score for each vendor (rating + review count)
-                  const vendorScores = popularVendors.map(v => ({
-                    vendor: v,
-                    score: (v.averageRating || 0) + (v.reviewCount || 0)
-                  }));
-                  const maxScore = Math.max(...vendorScores.map(v => v.score));
-                  const variantIndex = index % cardVariants.length;
-                  const logoStyle = index % 4; // Different logo styles
-                  const badgeStyle = index % 3; // Different badge styles
-                  // Show "Top" badge for vendors with the highest combined score
-                  const vendorScore = (vendor.averageRating || 0) + (vendor.reviewCount || 0);
-                  const showTopBadge = vendorScore === maxScore;
+          {loading ? (
+            <SkeletonLoading type="vendors" count={6} />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+              {popularVendors.length > 0 ? popularVendors.map((vendor, index) => {
+                const cardVariants = [
+                  // Variant 1: Premium with gold accent
+                  "rounded-2xl border-2 border-yellow-200/50",
+                  // Variant 2: Modern with angled border
+                  "rounded-xl border-r-4 border-r-yellow-500",
+                  // Variant 3: Classic with shadow and badge
+                  "rounded-lg shadow-xl",
+                  // Variant 4: Artistic with background pattern
+                  "rounded-3xl bg-gradient-to-br from-yellow-50/60 to-amber-50/40"
+                ];
+                // Calculate combined score for each vendor (rating + review count)
+                const vendorScores = popularVendors.map(v => ({
+                  vendor: v,
+                  score: (v.averageRating || 0) + (v.reviewCount || 0)
+                }));
+                const maxScore = Math.max(...vendorScores.map(v => v.score));
+                const variantIndex = index % cardVariants.length;
+                const logoStyle = index % 4; // Different logo styles
+                const badgeStyle = index % 3; // Different badge styles
+                // Show "Top" badge for vendors with the highest combined score
+                const vendorScore = (vendor.averageRating || 0) + (vendor.reviewCount || 0);
+                const showTopBadge = vendorScore === maxScore;
 
-                  return (
-                    <motion.article
-                      key={vendor._id || vendor.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: index * 0.05 }}
-                      className="group"
-                    >
-                      <Link href={`/vendor/${vendor.vendorSlug}`}>
-                        <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-yellow-400/50 shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer ${cardVariants[variantIndex]}`}>
-                          <div className="aspect-[4/3] relative bg-gray-50">
-                            <LazyImage
-                              src={vendor.coverImage || "https://placehold.co/400x300/000000/FFFFFF/png?text=Boutique"}
-                              alt={`Bannière ${vendor.businessName}`}
-                              fill
-                              priority={index < 6}
-                              sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                              className="object-cover group-hover:scale-110 transition-transform duration-500"
-                            />
-                            <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-gradient-to-bl from-yellow-500/20 via-transparent to-orange-500/20' : 'bg-gradient-to-t from-black/45 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                            {vendor.logo && (
-                              <div className={`absolute border-3 border-white overflow-hidden shadow-2xl bg-white ${logoStyle === 0 ? '-bottom-6 left-3 w-12 h-12 rounded-xl' : logoStyle === 1 ? '-bottom-5 right-3 w-10 h-10 rounded-full' : logoStyle === 2 ? 'top-3 right-3 w-14 h-14 rounded-2xl' : 'bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-4 border-yellow-400'}`}>
-                                <LazyImage
-                                  src={vendor.logo}
-                                  alt={`Logo ${vendor.businessName}`}
-                                  fill
-                                  sizes="64px"
-                                  className="object-cover"
-                                />
-                              </div>
-                            )}
-                            {showTopBadge && (
-                              <div className={`absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 ${badgeStyle === 0 ? 'rounded-full' : badgeStyle === 1 ? 'rounded-lg' : 'rounded-md'} text-xs font-bold shadow-sm flex items-center gap-1`}>
-                                <Star className="w-3 h-3 fill-white" />
-                                Top
+                return (
+                  <motion.article
+                    key={vendor._id || vendor.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: index * 0.05 }}
+                    className="group"
+                  >
+                    <Link href={`/vendor/${vendor.vendorSlug}`}>
+                      <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-yellow-400/50 shadow-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 cursor-pointer ${cardVariants[variantIndex]}`}>
+                        <div className="aspect-4/3 relative bg-gray-50">
+                          <LazyImage
+                            src={vendor.coverImage || "https://placehold.co/400x300/000000/FFFFFF/png?text=Boutique"}
+                            alt={`Bannière ${vendor.businessName}`}
+                            fill
+                            priority={index < 6}
+                            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className={`absolute inset-0 ${variantIndex === 3 ? 'bg-linear-to-bl from-yellow-500/20 via-transparent to-orange-500/20' : 'bg-linear-to-t from-black/45 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                          {vendor.logo && (
+                            <div className={`absolute border-3 border-white overflow-hidden shadow-2xl bg-white ${logoStyle === 0 ? '-bottom-6 left-3 w-12 h-12 rounded-xl' : logoStyle === 1 ? '-bottom-5 right-3 w-10 h-10 rounded-full' : logoStyle === 2 ? 'top-3 right-3 w-14 h-14 rounded-2xl' : 'bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-16 rounded-full border-4 border-yellow-400'}`}>
+                              <LazyImage
+                                src={vendor.logo}
+                                alt={`Logo ${vendor.businessName}`}
+                                fill
+                                sizes="64px"
+                                className="object-cover"
+                              />
+                            </div>
+                          )}
+                          {showTopBadge && (
+                            <div className={`absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 ${badgeStyle === 0 ? 'rounded-full' : badgeStyle === 1 ? 'rounded-lg' : 'rounded-md'} text-xs font-bold shadow-sm flex items-center gap-1`}>
+                              <Star className="w-3 h-3 fill-white" />
+                              Top
+                            </div>
+                          )}
+                        </div>
+                        <CardContent className="pt-8 px-3 pb-3">
+                          <div className={`${windowWidth <= 440 ? 'flex flex-col' : 'flex'} items-start justify-between mb-1`}>
+                            <h3 className={`font-semibold text-sm group-hover:text-yellow-700 transition-colors leading-tight truncate ${variantIndex === 0 ? 'font-bold' : variantIndex === 3 ? 'font-bold' : ''}`}>
+                              {vendor.businessName}
+                            </h3>
+                            {vendor.averageRating && vendor.averageRating > 0 && (
+                              <div className={`${windowWidth <= 440 ? 'ml-0' : 'ml-1'} flex items-center gap-1 text-yellow-400`}>
+                                <Star className="w-3 h-3 fill-current" />
+                                <span className="text-xs font-medium text-gray-700">
+                                  {vendor.averageRating.toFixed(1)} ({vendor.reviewCount} avis)
+                                </span>
                               </div>
                             )}
                           </div>
-                          <CardContent className="pt-8 px-3 pb-3">
-                            <div className={`${windowWidth <= 440 ? 'flex flex-col' : 'flex'} items-start justify-between mb-1`}>
-                              <h3 className={`font-semibold text-sm group-hover:text-yellow-700 transition-colors leading-tight truncate ${variantIndex === 0 ? 'font-bold' : variantIndex === 3 ? 'font-bold' : ''}`}>
-                                {vendor.businessName}
-                              </h3>
-                              {vendor.averageRating && vendor.averageRating > 0 && (
-                                <div className={`${windowWidth <= 440 ? 'ml-0' : 'ml-1'} flex items-center gap-1 text-yellow-400`}>
-                                  <Star className="w-3 h-3 fill-current" />
-                                  <span className="text-xs font-medium text-gray-700">
-                                    {vendor.averageRating.toFixed(1)} ({vendor.reviewCount} avis)
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <p className={`text-gray-600 line-clamp-1 mb-2 leading-tight text-xs ${variantIndex === 3 ? 'text-xs' : 'text-xs'}`}>
-                              {vendor.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">Cliquez pour visiter</span>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    </motion.article>
-                  );
-                }) : (
-                  <div className="col-span-full text-center py-12 text-gray-500">Aucune boutique populaire</div>
-                )}
-              </div>
-            )}
-          </div>
-        </section>
+                          <p className={`text-gray-600 line-clamp-1 mb-2 leading-tight text-xs ${variantIndex === 3 ? 'text-xs' : 'text-xs'}`}>
+                            {vendor.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Cliquez pour visiter</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.article>
+                );
+              }) : (
+                <div className="col-span-full text-center py-12 text-gray-500">Aucune boutique populaire</div>
+              )}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* How It Works - Interactive Guide */}
-      <InteractiveHowItWorksSection />
+      {/* <InteractiveHowItWorksSection /> */}
 
 
       {/* CTA Section - Modern & Engaging */}
       <section className="relative py-20 md:py-32 px-4 md:px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-gray-900 via-gray-800 to-black"></div>
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-float"></div>
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-orange-500 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }}></div>
@@ -825,7 +865,7 @@ export default function Home() {
             <div className="flex flex-wrap justify-center gap-4 pt-4">
               <Link
                 href="/products"
-                className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-orange-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:-translate-y-1"
+                className="group inline-flex items-center gap-2 px-8 py-4 bg-orange-500 text-white font-semibold rounded-full shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:-translate-y-1"
               >
                 <ShoppingBag className="w-5 h-5" />
                 Commencer à acheter

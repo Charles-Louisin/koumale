@@ -11,8 +11,11 @@ import { UploadFile } from "@/app/components/ui/upload-file";
 import { authApi, vendorsApi, Vendor } from "@/app/lib/api";
 import { useToast } from "@/app/hooks/use-toast";
 
-import { Loader2, MapPin, Phone, MessageCircle, Send, Mail, AlertCircle } from "lucide-react";
+import { Loader2, MapPin, Phone, MessageCircle, Send, Mail, AlertCircle, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { Modal } from "@/app/components/ui/modal";
+import { useRouter } from "next/navigation";
+import { authStorage } from "@/app/lib/api";
 
 export default function VendorProfilePage() {
   const [vendor, setVendor] = useState<Vendor | null>(null);
@@ -32,8 +35,11 @@ export default function VendorProfilePage() {
   const [originalFormData, setOriginalFormData] = useState(formData);
   const [hasOldImage, setHasOldImage] = useState({ logo: false, coverImage: false });
   const [showOldImageWarning, setShowOldImageWarning] = useState({ logo: false, coverImage: false });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { success, error } = useToast();
+  const router = useRouter();
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
@@ -199,6 +205,27 @@ export default function VendorProfilePage() {
       error("Impossible de mettre à jour le profil");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteVendor = async () => {
+    setDeleting(true);
+    try {
+      const res = await vendorsApi.deleteVendor();
+      if (res.success) {
+        success("Boutique supprimée avec succès");
+        // Déconnexion et redirection
+        authStorage.removeToken();
+        router.push('/');
+      } else {
+        throw new Error("Erreur lors de la suppression");
+      }
+    } catch (err) {
+      console.error("Error deleting vendor:", err);
+      error("Impossible de supprimer la boutique");
+    } finally {
+      setDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -397,16 +424,66 @@ export default function VendorProfilePage() {
         </Card>
 
         {/* Actions */}
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => setFormData(originalFormData)}>
-            Annuler
+        <div className="flex justify-between items-center">
+          <Button
+            type="button"
+            variant="outline"
+            className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700"
+            onClick={() => setShowDeleteModal(true)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Supprimer ma boutique
           </Button>
-          <Button type="submit" disabled={saving}>
-            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Sauvegarder
-          </Button>
+          <div className="flex gap-4">
+            <Button type="button" variant="outline" onClick={() => setFormData(originalFormData)}>
+              Annuler
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Sauvegarder
+            </Button>
+          </div>
         </div>
       </form>
+
+      {/* Modal de confirmation de suppression */}
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <Trash2 className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h4 className="font-medium text-red-900">Attention</h4>
+              <p className="text-sm text-red-700">Cette action est irréversible</p>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600">
+            Êtes-vous sûr de vouloir supprimer votre boutique ? Cette action supprimera :
+          </p>
+          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+            <li>Votre profil de vendeur</li>
+            <li>Tous vos produits</li>
+            <li>Toutes les données associées</li>
+          </ul>
+          <p className="text-sm font-medium text-gray-800 mt-4">
+            Vous serez redirigé vers la page d&apos;accueil et vous redeviendrez un client.
+          </p>
+        </div>
+        <div className="flex justify-end gap-3 mt-6">
+          <Button variant="outline" onClick={() => setShowDeleteModal(false)} disabled={deleting}>
+            Annuler
+          </Button>
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleDeleteVendor}
+            disabled={deleting}
+          >
+            {deleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Supprimer définitivement
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

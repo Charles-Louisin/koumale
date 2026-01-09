@@ -5,11 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { authApi, authStorage } from "@/app/lib/api";
 import { useToast } from "@/app/hooks/use-toast";
-import { ToastContainer } from "../ui/toast";
 
 export function Footer() {
   const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string; role?: "client" | "vendor" | "superAdmin"; status?: "pending" | "approved" } | null>(null);
-  const { toasts, removeToast, info } = useToast();
+  const { info } = useToast();
 
   React.useEffect(() => {
     const token = authStorage.getToken();
@@ -217,7 +216,6 @@ export function Footer() {
         </div>
       </div>
     </footer>
-    <ToastContainer toasts={toasts} onClose={removeToast} />
     </>
   );
 }

@@ -6,7 +6,9 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { vendorsApi, productsApi } from "@/app/lib/api";
-import { Search, Filter, Store, Package, TrendingUp, Eye, Phone, Calendar, ExternalLink, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { Search, Filter, Store, Package, TrendingUp, Eye, Phone, Calendar, ExternalLink, ChevronLeft, ChevronRight, Building2, Trash2, User } from "lucide-react";
+import { Modal } from "@/app/components/ui/modal";
+import { useToast } from "@/app/hooks/use-toast";
 
 type VendorRow = {
   _id: string;
@@ -19,6 +21,12 @@ type VendorRow = {
   logo?: string;
   coverImage?: string;
   productCount?: number;
+  user?: {
+    _id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
 };
 
 type ApiVendor = {
@@ -31,6 +39,12 @@ type ApiVendor = {
   address?: string;
   logo?: string;
   coverImage?: string;
+  user?: {
+    _id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
 };
 
 export default function AdminVendorsPage() {
@@ -40,6 +54,9 @@ export default function AdminVendorsPage() {
   const [total, setTotal] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [q, setQ] = React.useState('');
+  const [deleteVendorId, setDeleteVendorId] = React.useState<string | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
+  const { success, error: toastError } = useToast();
   const [stats, setStats] = React.useState({
     totalVendors: 0,
     totalProducts: 0,
@@ -62,10 +79,11 @@ export default function AdminVendorsPage() {
                 const productCount = productsRes.success ? (productsRes.total || 0) : 0;
                 return {
                   ...v,
-                  productCount
+                  productCount,
+                  user: (v as any).user // Inclure les données utilisateur
                 };
               } catch {
-                return { ...v, productCount: 0 };
+                return { ...v, productCount: 0, user: (v as any).user };
               }
             })
           );
@@ -106,6 +124,24 @@ export default function AdminVendorsPage() {
     setQ('');
     setPage(1);
     load(1);
+  };
+
+  const handleDeleteVendor = async () => {
+    if (!deleteVendorId) return;
+    setDeleting(true);
+    try {
+      const res = await vendorsApi.deleteVendorByAdmin(deleteVendorId);
+      if (res.success) {
+        success("Boutique supprimée avec succès");
+        setRows((prev) => prev.filter((v) => v._id !== deleteVendorId));
+        setTotal((prev) => Math.max(0, prev - 1));
+        setDeleteVendorId(null);
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : "Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -243,7 +279,7 @@ export default function AdminVendorsPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 md:gap-4">
                 {rows.map((vendor) => (
                   <Card key={vendor._id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-emerald-300 bg-white overflow-hidden">
                     <CardContent className="p-6">
@@ -261,6 +297,12 @@ export default function AdminVendorsPage() {
                               {vendor.businessName}
                             </h3>
                             <p className="text-sm text-gray-600">@{vendor.vendorSlug}</p>
+                            {vendor.user && (
+                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {[vendor.user.firstName, vendor.user.lastName].filter(Boolean).join(' ') || vendor.user.email}
+                              </p>
+                            )}
                           </div>
                         </div>
 
@@ -297,6 +339,15 @@ export default function AdminVendorsPage() {
                               <ExternalLink className="w-4 h-4 mr-2" />
                               Boutique
                             </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-2 border-red-200 text-red-600 hover:bg-red-50"
+                            onClick={() => setDeleteVendorId(vendor._id)}
+                            title="Supprimer la boutique"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -360,6 +411,40 @@ export default function AdminVendorsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Modal de suppression */}
+        <Modal isOpen={!!deleteVendorId} onClose={() => setDeleteVendorId(null)} title="Supprimer la boutique">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h4 className="font-medium text-red-900">Attention</h4>
+                <p className="text-sm text-red-700">Cette action est irréversible</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600">
+              Êtes-vous sûr de vouloir supprimer cette boutique ? Cette action supprimera :
+            </p>
+            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+              <li>La boutique et tous ses produits</li>
+              <li>Le compte utilisateur sera converti en compte client</li>
+            </ul>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setDeleteVendorId(null)} disabled={deleting}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteVendor}
+              disabled={deleting}
+            >
+              {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+            </Button>
+          </div>
+        </Modal>
       </div>
     </div>
   );

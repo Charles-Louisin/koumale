@@ -69,6 +69,18 @@ export default function NewProductPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !description || !category || price === "" || images.length === 0) return;
+    
+    // Validation: le prix promotionnel doit être inférieur au prix normal
+    const finalPrice = typeof price === "number" ? price : parseFloat(String(price));
+    const finalPromotionalPrice = promotionalPrice !== "" 
+      ? (typeof promotionalPrice === "number" ? promotionalPrice : parseFloat(String(promotionalPrice)))
+      : undefined;
+    
+    if (finalPromotionalPrice !== undefined && finalPromotionalPrice >= finalPrice) {
+      toastError("Le prix promotionnel doit être inférieur au prix normal", 4000);
+      return;
+    }
+    
     setSubmitting(true);
     try {
       const attributes: Record<string, unknown> = {};
@@ -81,8 +93,8 @@ export default function NewProductPage() {
       const res = await productsApi.create({
         name,
         description,
-        price: typeof price === "number" ? price : parseFloat(String(price)),
-        promotionalPrice: promotionalPrice !== "" ? (typeof promotionalPrice === "number" ? promotionalPrice : parseFloat(String(promotionalPrice))) : undefined,
+        price: finalPrice,
+        promotionalPrice: finalPromotionalPrice,
         category,
         images: images.map((f) => f.url),
         attributes,

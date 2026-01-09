@@ -9,6 +9,8 @@ import { LazyImage } from "@/app/components/ui/lazy-image";
 import { motion } from "framer-motion";
 import { Store, MapPin, Phone, MessageCircle, Star, Package, ArrowRight, Users, Award, Clock, Shield, Filter, Send, Mail } from "lucide-react";
 import Image from "next/image";
+import AddToCartButton from "@/app/components/cart/AddToCartButton";
+import { calculateDiscountPercentage } from "@/app/lib/utils";
 
 // Helper function to get first image from array or fallback
 const getProductImage = (images: string[] | undefined): string => {
@@ -361,7 +363,7 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: index * 0.05 }}
-                    className="group"
+                    className="group relative"
                   >
                     <Link href={`/vendor/${vendorSlug}/product/${product._id}`}>
                       <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-orange-400/40 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer aspect-square ${cardVariants[variantIndex]}`}>
@@ -373,8 +375,13 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                             className="object-cover group-hover:scale-110 transition-transform duration-500"
                           />
-                          {hasBadge && (
-                            <div className={`absolute top-2 right-2 bg-orange-500 text-white px-1.5 py-0.5 ${variantIndex === 1 ? 'rounded-full' : 'rounded-lg'} text-xs font-bold shadow-sm z-10`}>
+                          {product.promotionalPrice && product.promotionalPrice > 0 && (
+                            <div className={`absolute top-2 right-2 bg-red-500 text-white px-1.5 py-0.5 ${variantIndex === 1 ? 'rounded-full' : 'rounded-lg'} text-[9px] font-bold shadow-sm z-10`}>
+                              -{calculateDiscountPercentage(product.price, product.promotionalPrice)}%
+                            </div>
+                          )}
+                          {hasBadge && !product.promotionalPrice && (
+                            <div className={`absolute top-2 right-2 bg-orange-500 text-white px-1.5 py-0.5 ${variantIndex === 1 ? 'rounded-full' : 'rounded-lg'} text-[9px] font-bold shadow-sm z-10`}>
                               Nouveau
                             </div>
                           )}
@@ -382,45 +389,61 @@ export default function VendorPage({ params }: { params: Promise<{ vendorSlug: s
                           {/* Permanent black gradient at bottom */}
                           <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black/90 via-black/60 to-transparent"></div>
                           {/* Text content positioned in the black area */}
-                          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                            <div className="mb-2">
-                              <span className="text-xs text-white/90 font-medium truncate block uppercase tracking-wide">
+                          <div className="absolute bottom-0 left-0 right-0 p-3 text-white">
+                            <div className="mb-1">
+                              <span className="text-[10px] text-white/90 font-medium truncate block uppercase tracking-wide">
                                 {product.category}
                               </span>
                             </div>
-                            <h3 className="line-clamp-2 mb-2 leading-tight text-base font-semibold">
+                            <h3 className="line-clamp-2 mb-1.5 leading-tight text-xs font-semibold">
                               {product.name}
                             </h3>
 
                             {/* Rating Display */}
                             {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
-                              <div className="flex items-center gap-1 mb-2">
-                                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                                <span className="text-xs font-medium text-white/90">
+                              <div className="flex items-center gap-1 mb-1.5">
+                                <Star className="w-2.5 h-2.5 text-yellow-400 fill-current" />
+                                <span className="text-[9px] font-medium text-white/90">
                                   {(product.averageRating || 0).toFixed(1)}
                                 </span>
-                                <span className="text-xs text-white/70">
+                                <span className="text-[9px] text-white/70">
                                   ({product.reviewCount} avis)
                                 </span>
                               </div>
                             )}
 
 
-                            <p className="text-white/90 line-clamp-2 mb-3 leading-tight text-sm">
+                            <p className="text-white/90 line-clamp-2 mb-2 leading-tight text-[10px]">
                               {product.description}
                             </p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-lg font-bold">
-                                {product.price.toFixed(0)} FCFA
-                              </span>
-                              <div className="bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center w-8 h-8 border border-white/20">
-                                <ArrowRight className="w-4 h-4 text-white" />
-                              </div>
+                            <div className="flex items-center justify-start gap-1.5">
+                              {product.promotionalPrice && product.promotionalPrice > 0 ? (
+                                <div className="flex flex-col items-start gap-1">
+                                  <span className="text-sm font-bold text-white">
+                                    {product.promotionalPrice.toFixed(0)} FCFA
+                                  </span>
+                                  <span className="text-[10px] text-white/70 line-through">
+                                    {product.price.toFixed(0)} FCFA
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-sm font-bold">
+                                  {product.price.toFixed(0)} FCFA
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
                       </Card>
                     </Link>
+                    {/* Add to Cart Button - Mobile Icon */}
+                    <div className="absolute bottom-3 right-2 lg:hidden z-20">
+                      <AddToCartButton product={product} variant="mobile-icon" />
+                    </div>
+                    {/* Add to Cart Button - Desktop Icon (on hover) */}
+                    <div className="absolute top-1 left-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      <AddToCartButton product={product} variant="icon" />
+                    </div>
                   </motion.article>
                 );
               }

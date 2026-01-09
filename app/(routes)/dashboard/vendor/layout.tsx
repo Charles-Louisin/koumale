@@ -115,7 +115,7 @@ export default function VendorDashboardLayout({ children }: VendorDashboardLayou
           <Link href="/dashboard/vendor/products" onClick={() => setIsSidebarOpen(false)}>
             <div className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 group ${
               pathname === "/dashboard/vendor/products"
-                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105"
+                ? "bg-orange-400 text-white shadow-lg transform scale-105"
                 : "hover:bg-orange-50 text-gray-700 hover:text-orange-600 hover:shadow-md"
             }`}>
               <div className={`p-2 rounded-lg transition-all duration-300 ${
@@ -134,7 +134,7 @@ export default function VendorDashboardLayout({ children }: VendorDashboardLayou
           <Link href="/dashboard/vendor/profile" onClick={() => setIsSidebarOpen(false)}>
             <div className={`flex items-center gap-4 px-5 py-3.5 rounded-xl transition-all duration-300 group ${
               pathname === "/dashboard/vendor/profile"
-                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg transform scale-105"
+                ? "bg-orange-400 text-white shadow-lg transform scale-105"
                 : "hover:bg-orange-50 text-gray-700 hover:text-orange-600 hover:shadow-md"
             }`}>
               <div className={`p-2 rounded-lg transition-all duration-300 ${

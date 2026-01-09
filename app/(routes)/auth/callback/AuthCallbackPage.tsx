@@ -32,8 +32,14 @@ export default function AuthCallbackPage() {
 
       success(`Bienvenue ! Connexion réussi...`);
 
+      // Récupérer la page de redirection
+      const redirectPath = sessionStorage.getItem('auth_redirect');
+      sessionStorage.removeItem('auth_redirect');
+
       setTimeout(() => {
-        if (user.role === "vendor") {
+        if (redirectPath && !redirectPath.startsWith('/auth')) {
+          router.push(redirectPath);
+        } else if (user.role === "vendor") {
           router.push("/dashboard/vendor");
         } else if (user.role === "superAdmin") {
           router.push("/dashboard/admin");

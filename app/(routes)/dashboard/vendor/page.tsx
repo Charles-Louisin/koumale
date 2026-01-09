@@ -7,6 +7,9 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Package, Eye, MousePointer, Share2, Plus, TrendingUp, Activity, BarChart3, PlusIcon } from "lucide-react";
 import { vendorApi, authApi, vendorsApi, ProductItem } from "@/app/lib/api";
+import { LazyImage } from "@/app/components/ui/lazy-image";
+import { useToast } from "@/app/hooks/use-toast";
+import { ToastContainer } from "@/app/components/ui/toast";
 
 type TopProduct = { name: string; views: number; clicks: number };
 
@@ -17,6 +20,8 @@ export default function VendorDashboardPage() {
   const [vendorSlug, setVendorSlug] = React.useState<string>("");
   const [recentProducts, setRecentProducts] = React.useState<ProductItem[]>([]);
   const [sharing, setSharing] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+  const { toasts, success, removeToast } = useToast();
 
   React.useEffect(() => {
     const run = async () => {
@@ -71,12 +76,19 @@ export default function VendorDashboardPage() {
     if (!shopAbsoluteUrl) return;
     try {
       await navigator.clipboard.writeText(shopAbsoluteUrl);
-    } catch {}
+      setCopied(true);
+      console.log('[copyLink] Calling success toast');
+      const toastId = success("le lien a été copié");
+      console.log('[copyLink] Toast ID:', toastId);
+      console.log('[copyLink] Current toasts:', toasts);
+    } catch (err) {
+      console.error('[copyLink] Error copying:', err);
+    }
   };
 
   return (
     loading ? <div /> :
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
         <div className="mb-8 md:mb-12">
@@ -118,7 +130,7 @@ export default function VendorDashboardPage() {
 
         {/* Key Metrics Grid */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
-          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-linear-to-br from-orange-50 to-orange-100">
             <CardContent className="p-6 md:p-8">
               <div className="flex items-center justify-between">
                 <div>
@@ -132,7 +144,7 @@ export default function VendorDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-linear-to-br from-orange-50 to-orange-100">
             <CardContent className="p-6 md:p-8">
               <div className="flex items-center justify-between">
                 <div>
@@ -146,7 +158,7 @@ export default function VendorDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-linear-to-br from-orange-50 to-orange-100">
             <CardContent className="p-6 md:p-8">
               <div className="flex items-center justify-between">
                 <div>
@@ -160,7 +172,7 @@ export default function VendorDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+          <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-linear-to-br from-orange-50 to-orange-100">
             <CardContent className="p-6 md:p-8">
               <div className="flex items-center justify-between">
                 <div>
@@ -176,7 +188,7 @@ export default function VendorDashboardPage() {
         </div>
 
         {/* Quick Actions & Recent Activity */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-8 mb-12">
+        <div className="grid grid-cols-1 xl:grid-cols-1 gap-4 md:gap-8 mb-12">
           
 
           {/* Recent Products */}
@@ -203,17 +215,42 @@ export default function VendorDashboardPage() {
                   {recentProducts.slice(0, 3).map((product) => (
                     <div key={product._id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors gap-4">
                       <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                          <span className="text-white font-bold text-lg">
-                            {product.name.charAt(0).toUpperCase()}
-                          </span>
+                        <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-gray-200 relative">
+                          {product.images && product.images.length > 0 ? (
+                            <LazyImage
+                              src={product.images[0]}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-linear-to-br from-orange-500 to-orange-600 flex items-center justify-center">
+                              <span className="text-white font-bold text-lg">
+                                {product.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-gray-900 truncate">{product.name}</p>
                           <p className="text-sm text-gray-600 truncate">{product.category}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(product.price)}
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            {product.promotionalPrice ? (
+                              <>
+                                <p className="text-xs text-gray-400 line-through">
+                                  {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(product.price)}
+                                </p>
+                                <p className="text-xs font-semibold text-orange-600">
+                                  {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(product.promotionalPrice)}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-xs text-gray-500">
+                                {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "XOF" }).format(product.price)}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="flex sm:flex-row gap-2 w-full sm:w-auto">
@@ -255,7 +292,7 @@ export default function VendorDashboardPage() {
                   <p className="text-gray-600">Commencez par ajouter votre premier produit.</p>
                   <div className="mt-4">
                     <Link href="/dashboard/vendor/products/new">
-                      <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0">
+                      <Button className="bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0">
                         <Plus className="mr-2 h-4 w-4" />
                         <span className="hidden sm:inline">Ajouter un produit</span>
                         <span className="sm:hidden">Ajouter</span>
@@ -287,23 +324,18 @@ export default function VendorDashboardPage() {
                 className="flex-1"
               />
               <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" onClick={copyLink} disabled={!vendorSlug} className="border-2 hover:bg-orange-50 flex-1 sm:flex-none">
-                  <span className="hidden sm:inline">Copier</span>
-                  <span className="sm:hidden">Copier</span>
+                <Button variant="outline" onClick={copyLink} disabled={!vendorSlug} className="border-2 cursor-pointer hover:bg-orange-50 flex-1 sm:flex-none">
+                  <span className="hidden sm:inline">{copied ? "Copié" : "Copier"}</span>
+                  <span className="sm:hidden">{copied ? "Lien de la boutique copié" : "Copier le lien de ma boutique"}</span>
                 </Button>
-                {vendorSlug ? (
-                  <Link href={shopRelativeUrl} target="_blank" className="flex-1 sm:flex-none">
-                    <Button variant="outline" className="border-2 hover:bg-orange-50 w-full">
-                      <span className="hidden sm:inline">Ouvrir</span>
-                      <span className="sm:hidden">Ouvrir</span>
-                    </Button>
-                  </Link>
-                ) : null}
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 }

@@ -6,7 +6,9 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { adminApi } from "@/app/lib/api";
-import { Search, Filter, Users, UserCheck, UserX, Crown, Mail, Calendar, ChevronLeft, ChevronRight, Eye, Shield } from "lucide-react";
+import { Search, Filter, Users, UserCheck, UserX, Crown, Mail, Calendar, ChevronLeft, ChevronRight, Eye, Shield, Trash2, Store } from "lucide-react";
+import { Modal } from "@/app/components/ui/modal";
+import { useToast } from "@/app/hooks/use-toast";
 
 type UserRow = {
   _id: string;
@@ -16,6 +18,11 @@ type UserRow = {
   role: string;
   status: string;
   createdAt: string;
+  vendor?: {
+    _id: string;
+    businessName: string;
+    vendorSlug: string;
+  };
 };
 
 type ApiUser = {
@@ -26,6 +33,11 @@ type ApiUser = {
   role: 'client' | 'vendor' | 'superAdmin';
   status: 'pending' | 'approved';
   createdAt: string;
+  vendor?: {
+    _id: string;
+    businessName: string;
+    vendorSlug: string;
+  };
 };
 
 export default function AdminUsersPage() {
@@ -37,6 +49,9 @@ export default function AdminUsersPage() {
   const [role, setRole] = React.useState<'' | 'client' | 'vendor' | 'superAdmin'>('');
   const [status, setStatus] = React.useState<'' | 'pending' | 'approved'>('');
   const [q, setQ] = React.useState('');
+  const [deleteUserId, setDeleteUserId] = React.useState<string | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
+  const { success, error: toastError } = useToast();
   const [stats, setStats] = React.useState({
     totalUsers: 0,
     approvedUsers: 0,
@@ -67,6 +82,7 @@ export default function AdminUsersPage() {
             role: u.role,
             status: u.status,
             createdAt: u.createdAt,
+            vendor: u.vendor,
           })));
           setTotal(typeof res.total === "number" ? res.total : 0);
         }
@@ -104,6 +120,24 @@ export default function AdminUsersPage() {
     setStatus('');
     setPage(1);
     load(1);
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUserId) return;
+    setDeleting(true);
+    try {
+      const res = await adminApi.deleteUser(deleteUserId);
+      if (res.success) {
+        success("Utilisateur supprimé avec succès");
+        setRows((prev) => prev.filter((u) => u._id !== deleteUserId));
+        setTotal((prev) => Math.max(0, prev - 1));
+        setDeleteUserId(null);
+      }
+    } catch (err) {
+      toastError(err instanceof Error ? err.message : "Erreur lors de la suppression");
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const getRoleIcon = (role: string) => {
@@ -311,7 +345,7 @@ export default function AdminUsersPage() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 md:gap-4">
                 {rows.map((user) => (
                   <Card key={user._id} className="group hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-indigo-300 bg-white overflow-hidden">
                     <CardContent className="p-6">
@@ -344,6 +378,12 @@ export default function AdminUsersPage() {
                               {[user.firstName, user.lastName].filter(Boolean).join(' ') || 'Utilisateur'}
                             </h3>
                             <p className="text-sm text-gray-600 break-all mt-1">{user.email}</p>
+                            {user.role === 'vendor' && user.vendor && (
+                              <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                <Store className="w-3 h-3" />
+                                {user.vendor.businessName}
+                              </p>
+                            )}
                           </div>
 
                           <div className="space-y-2 text-sm text-gray-600">
@@ -366,6 +406,15 @@ export default function AdminUsersPage() {
                               <Mail className="w-4 h-4 mr-2" />
                               Email
                             </a>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-2 border-red-200 text-red-600 hover:bg-red-50"
+                            onClick={() => setDeleteUserId(user._id)}
+                            title="Supprimer l'utilisateur"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -429,6 +478,44 @@ export default function AdminUsersPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Modal de suppression */}
+        <Modal isOpen={!!deleteUserId} onClose={() => setDeleteUserId(null)} title="Supprimer l'utilisateur">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h4 className="font-medium text-red-900">Attention</h4>
+                <p className="text-sm text-red-700">Cette action est irréversible</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600">
+              Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action supprimera :
+            </p>
+            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+              <li>Le compte utilisateur</li>
+              {rows.find(u => u._id === deleteUserId)?.role === 'vendor' && (
+                <>
+                  <li>La boutique associée et tous ses produits</li>
+                </>
+              )}
+            </ul>
+          </div>
+          <div className="flex justify-end gap-3 mt-6">
+            <Button variant="outline" onClick={() => setDeleteUserId(null)} disabled={deleting}>
+              Annuler
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteUser}
+              disabled={deleting}
+            >
+              {deleting ? 'Suppression...' : 'Supprimer définitivement'}
+            </Button>
+          </div>
+        </Modal>
       </div>
     </div>
   );

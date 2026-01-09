@@ -61,12 +61,23 @@ interface ToastContainerProps {
 }
 
 export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
-  if (toasts.length === 0) return null;
+  useEffect(() => {
+    console.log('[ToastContainer] Received toasts:', toasts);
+  }, [toasts]);
+
+  if (toasts.length === 0) {
+    console.log('[ToastContainer] No toasts, returning null');
+    return null;
+  }
+
+  console.log('[ToastContainer] Rendering', toasts.length, 'toasts');
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">
       {toasts.map((toast) => (
-        <Toast key={toast.id} toast={toast} onClose={onClose} />
+        <div key={toast.id} className="pointer-events-auto">
+          <Toast toast={toast} onClose={onClose} />
+        </div>
       ))}
     </div>
   );

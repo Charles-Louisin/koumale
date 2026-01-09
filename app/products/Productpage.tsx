@@ -11,6 +11,7 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Package, ArrowRight, Filter, Grid, List, Search, Tag, TrendingUp, Star } from "lucide-react";
 import ProductFilters from "@/app/components/ProductFilters";
+import AddToCartButton from "../components/cart/AddToCartButton";
 
 // Helper function to get first image from array or fallback
 const getProductImage = (images: string[] | undefined): string => {
@@ -69,11 +70,11 @@ export default function ProductsPage() {
   }, []);
 
   React.useEffect(() => {
-      const handleResize = () => setWindowWidth(window.innerWidth);
-      handleResize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const selectedCategoryFromUrl = React.useMemo(() => {
     const categoryParam = searchParams.get("category");
@@ -138,7 +139,7 @@ export default function ProductsPage() {
 
   return (
     <main className="min-h-screen pt-12 bg-white">
-      
+
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 pb-16">
         {/* Modern Filters & Controls */}
@@ -170,8 +171,8 @@ export default function ProductsPage() {
                     transition={{ delay: index * 0.05 }}
                     onClick={() => handleCategoryChange(category)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 ${selectedCategory === category
-                        ? "bg-gradient-to-r from-primary to-orange-500 text-white shadow-lg"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      ? "bg-orange-400 text-white shadow-lg"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                   >
                     {category}
@@ -187,8 +188,8 @@ export default function ProductsPage() {
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded-md transition-all ${viewMode === "grid"
-                      ? "bg-white shadow-sm text-primary"
-                      : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white shadow-sm text-primary"
+                    : "text-gray-600 hover:text-gray-800"
                     }`}
                 >
                   <Grid className="w-4 h-4" />
@@ -196,8 +197,8 @@ export default function ProductsPage() {
                 <button
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded-md transition-all ${viewMode === "list"
-                      ? "bg-white shadow-sm text-primary"
-                      : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white shadow-sm text-primary"
+                    : "text-gray-600 hover:text-gray-800"
                     }`}
                 >
                   <List className="w-4 h-4" />
@@ -256,72 +257,79 @@ export default function ProductsPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.05 }}
-                      className="group"
+                      className="group relative"
                     >
                       {viewMode === "grid" ? (
-                        <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
-                          <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer ${cardVariants[variantIndex]}`}>
-                            <div className="relative bg-gray-50 overflow-hidden w-full aspect-square">
-                              <LazyImage
-                                src={getProductImage(product.images)}
-                                alt={product.name}
-                                fill
-                                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                              />
-                              {hasBadge && (
-                                <div className={`absolute top-2 right-2 bg-primary text-white px-1.5 py-0.5 ${variantIndex === 3 ? 'rounded-full' : 'rounded-lg'} text-xs font-bold shadow-sm flex items-center gap-1 z-10`}>
-                                  <Tag className="w-2.5 h-2.5" />
-                                  New
-                                </div>
-                              )}
-                              <div className={`absolute inset-0 ${variantIndex === 2 ? 'bg-gradient-to-br from-primary/10 via-transparent to-orange-500/10' : 'bg-gradient-to-t from-black/20 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                            </div>
-                            <CardContent className="bg-white shadow-2xl p-3">
-                              {product.vendor && (
-                                <span className="text-xs text-gray-500 font-medium truncate block uppercase tracking-wide mb-1">
-                                  {product.vendor.businessName}
-                                </span>
-                              )}
-                              <h3 className="line-clamp-1 sm:line-clamp-2 mb-1 leading-tight text-xs sm:text-sm font-semibold text-gray-800">
-                                {product.name}
-                              </h3>
-                              {/* Rating Display */}
-                              {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
-                                <div className="flex items-center gap-1 mb-1">
-                                  <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                                  <span className="text-xs font-medium text-gray-700">
-                                    {product.averageRating.toFixed(1)}
+                        <>
+                          <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
+                            <Card className={`overflow-hidden bg-white border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer ${cardVariants[variantIndex]}`}>
+                              <div className="relative bg-gray-50 overflow-hidden w-full aspect-square">
+                                <LazyImage
+                                  src={getProductImage(product.images)}
+                                  alt={product.name}
+                                  fill
+                                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                />
+                                {hasBadge && (
+                                  <div className={`absolute top-2 right-2 bg-primary text-white px-1.5 py-0.5 ${variantIndex === 3 ? 'rounded-full' : 'rounded-lg'} text-xs font-bold shadow-sm flex items-center gap-1 z-10`}>
+                                    <Tag className="w-2.5 h-2.5" />
+                                    New
+                                  </div>
+                                )}
+                                <div className={`absolute inset-0 ${variantIndex === 2 ? 'bg-gradient-to-br from-primary/10 via-transparent to-orange-500/10' : 'bg-gradient-to-t from-black/20 via-transparent to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
+                              </div>
+                              <CardContent className="bg-white shadow-2xl p-3">
+                                {product.vendor && (
+                                  <span className="text-xs text-gray-500 font-medium truncate block uppercase tracking-wide mb-1">
+                                    {product.vendor.businessName}
                                   </span>
-                                  <span className="text-xs text-gray-500">
-                                    ({product.reviewCount} avis)
-                                  </span>
-                                </div>
-                              )}
-                              <div className="flex items-center justify-between">
-                                <div className="flex flex-col">
-                                  {product.promotionalPrice ? (
-                                    <>
-                                      <span className="text-xs sm:text-sm font-bold text-red-600">
-                                        {product.promotionalPrice.toFixed(0)} FCFA
-                                      </span>
-                                      <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                )}
+                                <h3 className="line-clamp-1 sm:line-clamp-2 mb-1 leading-tight text-xs sm:text-sm font-semibold text-gray-800">
+                                  {product.name}
+                                </h3>
+                                {/* Rating Display */}
+                                {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                                  <div className="flex items-center gap-1 mb-1">
+                                    <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                    <span className="text-xs font-medium text-gray-700">
+                                      {product.averageRating.toFixed(1)}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      ({product.reviewCount} avis)
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex flex-col">
+                                    {product.promotionalPrice ? (
+                                      <div className="flex items-center gap-1 md:flex-col">
+                                        <span className="text-xs sm:text-sm font-bold text-red-600">
+                                          {product.promotionalPrice.toFixed(0)} FCFA
+                                        </span>
+                                        <span className="text-xs sm:text-sm text-gray-500 line-through">
+                                          {product.price.toFixed(0)} FCFA
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span className="text-sm sm:text-base font-bold text-gray-900">
                                         {product.price.toFixed(0)} FCFA
                                       </span>
-                                    </>
-                                  ) : (
-                                    <span className="text-sm sm:text-base font-bold text-gray-900">
-                                      {product.price.toFixed(0)} FCFA
-                                    </span>
-                                  )}
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="bg-primary/10 rounded-full flex items-center justify-center w-6 h-6">
-                                  <ArrowRight className="w-3 h-3 text-primary" />
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </Link>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                          {/* Add to Cart Button - Mobile Icon */}
+                          <div className="absolute top-2 left-2 lg:hidden z-20">
+                            <AddToCartButton product={product} variant="mobile-icon" />
+                          </div>
+                          {/* Add to Cart Button - Desktop Icon (on hover) */}
+                          <div className="absolute top-2 right-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <AddToCartButton product={product} variant="icon" />
+                          </div>
+                        </>
                       ) : (
                         <Link href={`/vendor/${product.vendor?.vendorSlug || ''}/product/${product._id}`}>
                           <Card className="overflow-hidden border border-gray-200 hover:border-primary/30 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer rounded-2xl">
@@ -344,51 +352,66 @@ export default function ProductsPage() {
                               <CardContent className="flex-1 p-3 items-center">
                                 <div className="flex justify-between items-start">
                                   <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors mb-0.5">
-                                      {product.name}
-                                    </h3>
-                                    {product.vendor && (
-                                      <span className="text-xs text-gray-500 truncate block">
-                                        {product.vendor.businessName}
-                                      </span>
-                                    )}
-                                    {/* Rating Display */}
-                                    {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
-                                      <div className="flex items-center gap-1 mb-1">
-                                        <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                                        <span className="text-xs font-medium text-gray-700">
-                                          {product.averageRating.toFixed(1)}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                          ({product.reviewCount} avis)
-                                        </span>
+                                    <div className="flex item-center justify-between">
+                                      <h3 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors mb-0.5">
+                                        {product.name}
+                                      </h3>
+
+                                      <div className="flex items-center ml-2">
+                                        {product.promotionalPrice ? (
+                                          <div className="flex items-center gap-1">
+                                            <span className="font-bold text-[10px] md:text-sm text-red-600">
+                                              {product.promotionalPrice.toFixed(0)} FCFA
+                                            </span>
+                                            <span className="text-[10px] md:text-sm text-gray-500 line-through">
+                                              {product.price.toFixed(0)} FCFA
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <span className="font-bold text-[13px] md:text-sm text-gray-900">
+                                            {product.price.toFixed(0)} FCFA
+                                          </span>
+                                        )}
                                       </div>
-                                    )}
-                                  </div>
-                                  <div className="flex flex-col items-end ml-2">
-                                    {product.promotionalPrice ? (
-                                      <>
-                                        <span className="font-bold text-sm text-red-600">
-                                          {product.promotionalPrice.toFixed(0)} FCFA
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      {product.vendor && (
+                                        <span className="text-xs text-gray-500 truncate block">
+                                          {product.vendor.businessName}
                                         </span>
-                                        <span className="text-xs text-gray-500 line-through">
-                                          {product.price.toFixed(0)} FCFA
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <span className="font-bold text-sm text-gray-900">
-                                        {product.price.toFixed(0)} FCFA
-                                      </span>
-                                    )}
+                                      )}
+                                      {/* Rating Display */}
+                                      {product.averageRating != null && product.reviewCount != null && product.reviewCount > 0 && (
+                                        <div className="flex items-center gap-1">
+                                          <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                                          <span className="text-xs font-medium text-gray-700">
+                                            {product.averageRating.toFixed(1)}
+                                          </span>
+                                          <span className="text-xs flex items-start text-gray-500">
+                                            ({product.reviewCount} avis)
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
+
                                 </div>
 
                                 <div className="flex items-center justify-between">
                                   <p className="text-xs text-gray-600 line-clamp-1 mb-2">
                                     {product.description}
                                   </p>
-                                  <ArrowRight className="w-3 h-3 text-primary group-hover:translate-x-1 transition-transform" />
                                 </div>
+
+                                {/* Add to Cart Button - Mobile Icon */}
+                                <div className="absolute bottom-2 right-2 lg:hidden z-20">
+                                  <AddToCartButton product={product} variant="mobile-icon" />
+                                </div>
+                                {/* Add to Cart Button - Desktop Icon (on hover) */}
+                                <div className="absolute bottom-2 right-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                  <AddToCartButton product={product} variant="icon" />
+                                </div>
+
                               </CardContent>
                             </div>
                           </Card>
@@ -435,8 +458,8 @@ export default function ProductsPage() {
                         variant="outline"
                         size="sm"
                         className={`rounded-xl transition-all ${currentPage === pageNum
-                            ? "bg-gradient-to-r from-primary to-orange-500 text-white shadow-lg"
-                            : "hover:bg-gray-100"
+                          ? "bg-gradient-to-r from-primary to-orange-500 text-white shadow-lg"
+                          : "hover:bg-gray-100"
                           }`}
                         onClick={() => setCurrentPage(pageNum)}
                       >

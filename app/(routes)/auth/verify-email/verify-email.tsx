@@ -22,6 +22,7 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     const emailParam = searchParams.get('email');
+    const redirectParam = searchParams.get('redirect');
     const redirectTo = searchParams.get('redirectTo');
     const firstName = searchParams.get('firstName');
     const lastName = searchParams.get('lastName');
@@ -30,6 +31,11 @@ export default function VerifyEmailPage() {
 
     if (emailParam) {
       setEmail(emailParam);
+    }
+
+    // Stocker la redirection si elle est fournie
+    if (redirectParam) {
+      sessionStorage.setItem('auth_redirect', redirectParam);
     }
 
     // Store registration data in sessionStorage for later use
@@ -78,24 +84,26 @@ export default function VerifyEmailPage() {
           const { authStorage } = await import('@/app/lib/api');
           authStorage.setToken(data.token);
 
-          // Clear any stored registration data
+          // Récupérer la page de redirection
+          const redirectPath = sessionStorage.getItem('auth_redirect');
+          sessionStorage.removeItem('auth_redirect');
           sessionStorage.removeItem('registerVendorData');
 
-          // Redirect immediately to home page
-          router.push('/');
+          // Rediriger vers la page précédente ou la page d'accueil
+          const finalRedirect = redirectPath && !redirectPath.startsWith('/auth') ? redirectPath : '/';
+          router.push(finalRedirect);
         } else {
           // Fallback for older responses without token
           const registrationData = sessionStorage.getItem('registerVendorData');
-          if (registrationData) {
-            sessionStorage.removeItem('registerVendorData');
-            setTimeout(() => {
-              router.push('/');
-            }, 2000);
-          } else {
-            setTimeout(() => {
-              router.push('/');
-            }, 2000);
-          }
+          const redirectPath = sessionStorage.getItem('auth_redirect');
+          sessionStorage.removeItem('registerVendorData');
+          sessionStorage.removeItem('auth_redirect');
+          
+          const finalRedirect = redirectPath && !redirectPath.startsWith('/auth') ? redirectPath : '/';
+          
+          setTimeout(() => {
+            router.push(finalRedirect);
+          }, 2000);
         }
       } else {
         setError(data.message || 'Erreur lors de la vérification');

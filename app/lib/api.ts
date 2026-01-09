@@ -9,6 +9,7 @@ export interface User {
   status: 'pending' | 'approved';
   firstName?: string;
   lastName?: string;
+  hideSecurityWarning?: boolean;
   vendor?: Vendor | null;
 }
 
@@ -28,7 +29,7 @@ export interface Vendor {
   coverImage?: string;
   documents?: string[];
   createdAt?: string;
-  user?: { email?: string; status?: string };
+  user?: { _id?: string; email?: string; firstName?: string; lastName?: string; status?: string };
   averageRating?: number;
   reviewCount?: number;
   productCount?: number;
@@ -77,10 +78,42 @@ async function apiRequest<T>(
       },
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      const text = await response.text();
+      // Essayer de parser le JSON
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          // Si ce n'est pas du JSON, utiliser le texte comme message
+          data = { message: text, error: text };
+        }
+      } else {
+        data = {};
+      }
+    } catch (jsonError) {
+      // Si la réponse n'est pas du JSON valide, créer un message d'erreur générique
+      throw new Error(`Erreur serveur (${response.status}): ${response.statusText}`);
+    }
 
     if (!response.ok) {
-      throw new Error(data.message || 'Une erreur est survenue');
+      // Extraire le message d'erreur de manière plus robuste
+      // Chercher dans différents champs possibles
+      const errorMessage = data?.message || data?.error || data?.errors?.promotionalPrice?.message || `Erreur serveur (${response.status})`;
+      const error = new Error(errorMessage);
+      // Ajouter les détails de la réponse pour le débogage
+      (error as any).response = data;
+      (error as any).status = response.status;
+      const requestBody = options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : null;
+      console.error(`[apiRequest] Erreur ${response.status}:`, {
+        endpoint,
+        errorMessage,
+        fullResponse: data,
+        requestBody,
+        requestBodyStringified: JSON.stringify(requestBody, null, 2),
+      });
+      throw error;
     }
 
     return data;
@@ -175,6 +208,15 @@ export const authApi = {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
+
+  async updatePreferences(data: { hideSecurityWarning?: boolean }) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<{ user: { id: string; hideSecurityWarning?: boolean } }>("/api/auth/preferences", {
+      method: 'PUT',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: JSON.stringify(data),
+    });
+  },
 };
 
 // API Admin
@@ -223,8 +265,16 @@ export const adminApi = {
     if (params.q) query.set('q', params.q);
     if (params.promotion) query.set('promotion', params.promotion);
     const qs = query.toString();
-    return apiRequest<Array<{ _id: string; email: string; firstName?: string; lastName?: string; role: string; status: string; createdAt: string }>>(`/api/users${qs ? `?${qs}` : ''}`, {
+    return apiRequest<Array<{ _id: string; email: string; firstName?: string; lastName?: string; role: string; status: string; createdAt: string; vendor?: { _id: string; businessName: string; vendorSlug: string } }>>(`/api/users${qs ? `?${qs}` : ''}`, {
       method: 'GET',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+
+  async deleteUser(userId: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<{ message: string }>(`/api/users/${userId}`, {
+      method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
@@ -296,6 +346,7 @@ export const productsApi = {
 
   async update(id: string, data: Partial<{ name: string; description: string; price: number; promotionalPrice?: number; category: string; images: string[]; attributes: Record<string, unknown>; isActive: boolean }>) {
     const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    // Utiliser la route API Next.js qui fait un proxy et contourne la validation serveur
     return apiRequest<ProductItem>(`/api/products/${id}`, {
       method: 'PUT',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -370,6 +421,93 @@ export const vendorsApi = {
       method: 'PUT',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       body: JSON.stringify(data),
+    });
+  },
+
+  async deleteVendor() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<{ message: string }>(`/api/vendors/me`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+
+  async deleteVendorByAdmin(vendorId: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<{ message: string }>(`/api/vendors/${vendorId}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+};
+
+// API Panier
+export interface CartItem {
+  _id: string;
+  product: ProductItem & {
+    vendor: Vendor;
+  };
+  quantity: number;
+  selectedAttributes?: Record<string, unknown>;
+  note?: string;
+}
+
+export interface Cart {
+  _id: string;
+  items: CartItem[];
+  totalPrice: number;
+  totalItems: number;
+}
+
+export const cartApi = {
+  async getCart() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<Cart>('/api/cart', {
+      method: 'GET',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+
+  async addToCart(data: {
+    productId: string;
+    quantity?: number;
+    selectedAttributes?: Record<string, unknown>;
+    note?: string;
+  }) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<Cart>('/api/cart', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: JSON.stringify(data),
+    });
+  },
+
+  async updateCartItem(itemId: string, data: {
+    quantity?: number;
+    note?: string;
+    selectedAttributes?: Record<string, unknown>;
+  }) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<Cart>(`/api/cart/${itemId}`, {
+      method: 'PUT',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      body: JSON.stringify(data),
+    });
+  },
+
+  async removeFromCart(itemId: string) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<Cart>(`/api/cart/${itemId}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+  },
+
+  async clearCart() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    return apiRequest<Cart>('/api/cart', {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
   },
 };
