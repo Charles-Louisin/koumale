@@ -9,6 +9,7 @@ import { Smartphone, Shirt, ChefHat, Book, Briefcase, Search, Folder, HomeIcon, 
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/app/contexts/ToastContext";
 import { useCart } from "@/app/contexts/CartContext";
+import { PushNotificationButton } from "../push-notification-button";
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -558,6 +559,11 @@ export function Navbar() {
                   </button>
                 )}
 
+                {/* Notifications Push - Desktop (version icône) */}
+                <div className="hidden lg:block">
+                  <PushNotificationButton variant="icon-only" />
+                </div>
+
                 {currentUser ? (
                   <>
                     <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg">
@@ -911,6 +917,14 @@ export function Navbar() {
                           <span>Tableau de bord</span>
                         </Link>
                       )}
+
+                      {/* Notifications Push */}
+                      <div className="pt-4 mt-4 border-t border-gray-200">
+                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-5">Notifications</div>
+                        <div className="px-5">
+                          <PushNotificationButton />
+                        </div>
+                      </div>
 
                       <button
                         onClick={() => { handleLogout(); setIsMenuOpen(false); }}

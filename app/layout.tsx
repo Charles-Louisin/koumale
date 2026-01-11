@@ -14,8 +14,28 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KOUMALE - Marketplace multi-vendeur",
+  title: "KOUMALE - Marketplace",
   description: "Plateforme marketplace centralisée pour petits et grands commerces.",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "KOUMALE",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
@@ -39,6 +59,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         {/* <meta name="google-site-verification" content="PdDCFV8PLsziDmPA1Yx0Por5sJYjFAXOIni9VnR3dxk" /> */}
         <link rel="canonical" href="https://koumale.com" />
         <meta name="google-site-verification" content="ml4bJHmhlGdRmam6iocKk_jo3nvI6Kx1mJ6zDGYv1zM" />
+        {/* PWA Meta Tags */}
+        <meta name="application-name" content="KOUMALE" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="KOUMALE" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-TileColor" content="#000000" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        {/* iOS Splash Screens */}
+        <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

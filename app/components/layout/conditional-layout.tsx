@@ -7,6 +7,7 @@ import { Footer } from "./footer";
 import { ToastContainer } from "../ui/toast";
 import { useToast, ToastProvider } from "@/app/contexts/ToastContext";
 import { CartProvider } from "@/app/contexts/CartContext";
+import { PWAProvider } from "../pwa-provider";
 
 function ToastWrapper() {
   const toastResult = useToast();
@@ -36,6 +37,7 @@ export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   return (
     <ToastProvider>
       <CartProvider>
+        <PWAProvider />
         {!isAuthRoute && !isDashboardRoute && <Navbar />}
         <main className={isAuthRoute || isDashboardRoute ? "min-h-screen" : "min-h-[calc(100vh-600px)] pt-72 md:pt-80"}>
           {children}

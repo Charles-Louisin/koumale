@@ -440,7 +440,7 @@ export default function Home() {
                         <AddToCartButton product={product} variant="mobile-icon" />
                       </div>
                       {/* Add to Cart Button - Desktop Icon (on hover) */}
-                      <div className="absolute top-2 right-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                      <div className="absolute top-2 left-2 hidden lg:block opacity-0 group-hover:opacity-100 transition-opacity z-20">
                         <AddToCartButton product={product} variant="icon" />
                       </div>
                     </motion.article>
