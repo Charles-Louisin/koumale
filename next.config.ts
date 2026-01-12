@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
+  // Ajouter une config turbopack vide pour éviter l'erreur
+  // next-pwa nécessite Webpack, donc on laisse la config vide
+  turbopack: {},
   images: {
     remotePatterns: [
       {
