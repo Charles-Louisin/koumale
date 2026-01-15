@@ -567,7 +567,7 @@ export default function Home() {
                             </div>
                           </div>
                           {/* Add to Cart Button - Mobile Icon */}
-                          <div className="absolute top-2 left-2 lg:hidden z-30" onClick={(e) => e.stopPropagation()}>
+                          <div className="absolute bottom-4 right-2 lg:hidden z-30" onClick={(e) => e.stopPropagation()}>
                             <AddToCartButton product={product} variant="mobile-icon" />
                           </div>
                           {/* Add to Cart Button - Desktop Icon (on hover) */}
