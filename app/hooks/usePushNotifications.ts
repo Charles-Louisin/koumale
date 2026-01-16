@@ -104,41 +104,59 @@ export const usePushNotifications = () => {
 
   // Demander la permission et s'abonner
   const subscribe = useCallback(async () => {
+    console.log('[Push] Début de l\'abonnement...');
+    console.log('[Push] isSupported:', isSupported);
+    console.log('[Push] vapidPublicKey:', vapidPublicKey ? 'Présente' : 'Manquante');
+    console.log('[Push] permission actuelle:', permission);
+
     if (!isSupported || !vapidPublicKey) {
-      console.error('Notifications push non supportées ou clé VAPID manquante');
+      console.error('[Push] Notifications push non supportées ou clé VAPID manquante');
       return false;
     }
 
     try {
-      // Demander la permission
-      if (permission === 'default') {
+      // Demander la permission si nécessaire
+      let currentPermission = permission;
+      
+      if (currentPermission === 'default') {
+        console.log('[Push] Demande de permission à l\'utilisateur...');
         const newPermission = await Notification.requestPermission();
+        console.log('[Push] Permission reçue:', newPermission);
         setPermission(newPermission);
+        currentPermission = newPermission;
         
         if (newPermission !== 'granted') {
-          console.warn('Permission de notification refusée');
+          console.warn('[Push] Permission de notification refusée par l\'utilisateur');
           return false;
         }
       }
 
-      if (permission !== 'granted') {
-        console.warn('Permission de notification non accordée');
+      // Vérifier la permission avec la valeur à jour
+      if (currentPermission !== 'granted') {
+        console.warn('[Push] Permission de notification non accordée:', currentPermission);
         return false;
       }
+
+      console.log('[Push] Permission accordée, récupération du Service Worker...');
 
       // S'assurer que le service worker est enregistré et prêt
       let registration: ServiceWorkerRegistration;
       if ('serviceWorker' in navigator) {
         registration = await navigator.serviceWorker.ready;
+        console.log('[Push] Service Worker prêt:', registration.scope);
       } else {
         throw new Error('Service Worker non supporté');
       }
+
+      console.log('[Push] Abonnement aux notifications push...');
 
       // S'abonner aux notifications push
       const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as BufferSource
       });
+
+      console.log('[Push] Abonnement réussi, endpoint:', pushSubscription.endpoint);
 
       const subscriptionData: PushSubscription = {
         endpoint: pushSubscription.endpoint,
@@ -147,6 +165,8 @@ export const usePushNotifications = () => {
           auth: arrayBufferToBase64(pushSubscription.getKey('auth')!)
         }
       };
+
+      console.log('[Push] Envoi de la subscription au serveur...');
 
       // Enregistrer la subscription sur le serveur
       const response = await axios.post(
@@ -160,20 +180,25 @@ export const usePushNotifications = () => {
         }
       );
 
+      console.log('[Push] Réponse du serveur:', response.data);
+
       if (response.data.success) {
+        console.log('[Push] ✅ Subscription enregistrée avec succès !');
         setSubscription(subscriptionData);
         setIsSubscribed(true);
         return true;
       } else {
-        console.error('Erreur lors de l\'enregistrement de la subscription:', response.data.message);
+        console.error('[Push] ❌ Erreur lors de l\'enregistrement:', response.data.message);
         return false;
       }
     } catch (error) {
-      console.error('Erreur lors de l\'abonnement aux notifications push:', error);
+      console.error('[Push] ❌ Erreur lors de l\'abonnement aux notifications push:', error);
       
       // Si l'erreur est due à une subscription existante, la récupérer
       if (error instanceof Error && error.message.includes('already subscribed')) {
+        console.log('[Push] Subscription existante détectée, récupération...');
         await checkSubscription();
+        return true;
       }
       
       return false;
