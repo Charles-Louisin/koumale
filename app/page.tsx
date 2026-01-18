@@ -17,7 +17,7 @@ import ChatClient from "./components/ai/chat-assistant";
 import { LazyImage } from "./components/ui/lazy-image";
 import { SkeletonLoading } from "./components/ui/skeleton-loading";
 import { Card, CardContent } from "./components/ui/card";
-import { productsApi, vendorsApi, ProductItem, Vendor, API_BASE_URL } from "./lib/api";
+import { productsApi, vendorsApi, ProductItem, Vendor, API_BASE_URL, authApi, authStorage } from "./lib/api";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import InteractiveWhySection from "./components/interactive-why-section";
@@ -44,6 +44,7 @@ export default function Home() {
   const [loading, setLoading] = React.useState(true);
   const [vw, setVw] = React.useState<number>(typeof window !== "undefined" ? window.innerWidth : 1024);
   const [windowWidth, setWindowWidth] = React.useState(0);
+  const [currentUser, setCurrentUser] = React.useState<{ firstName?: string; lastName?: string; role?: "client" | "vendor" | "superAdmin"; status?: "pending" | "approved" } | null>(null);
 
   // const [appReviews, setAppReviews] = React.useState<any[]>([]);
   // const [reviewsLoading, setReviewsLoading] = React.useState(false);
@@ -60,6 +61,24 @@ export default function Home() {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  React.useEffect(() => {
+    const token = authStorage.getToken();
+    if (!token) return;
+    authApi
+      .getMe()
+      .then((res) => {
+        if (res.success && res.user) {
+          setCurrentUser({
+            firstName: res.user.firstName,
+            lastName: res.user.lastName,
+            role: res.user.role,
+            status: res.user.status,
+          });
+        }
+      })
+      .catch(() => { });
   }, []);
 
   React.useEffect(() => {
@@ -871,13 +890,16 @@ export default function Home() {
                 Commencer à acheter
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link
-                href="/auth/register-vendor"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-full shadow-2xl hover:shadow-white/50 transition-all duration-300 hover:-translate-y-1"
-              >
-                <Store className="w-5 h-5" />
-                Devenir vendeur
-              </Link>
+              {/* Afficher le bouton uniquement pour les clients et les vendeurs en attente */}
+              {currentUser && (currentUser.role === "client" || (currentUser.role === "vendor" && currentUser.status === "pending")) && (
+                <Link
+                  href="/auth/register-vendor"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-full shadow-2xl hover:shadow-white/50 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <Store className="w-5 h-5" />
+                  Devenir vendeur
+                </Link>
+              )}
             </div>
 
 
